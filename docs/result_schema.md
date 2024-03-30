@@ -2,6 +2,10 @@
 
 - stores classification results and data to show on the web dashboard
 - wip
+- nesfit/domainradar-ui will have the actual type definitions in `types/dr.ts`
+
+## Changes
+- replaced variable key objects (`{"DNS": {...stuff}}`) with arrays of defined types (`[...{"source": "DNS", ...stuff}]`) for better indexing and querying
 
 ```json
 {
@@ -28,13 +32,14 @@
         "network_address": "2607:f1c0:1000::",
         "prefix_len": 36
       },
-      "collection_results": {
-        "<src>": {
-          "result": "<result>",
-          "attempts": [],
+      "collection_results": [
+        {
+          "source": "DNS | RDAP | ...etc",
+          "result": "<result> string? ok/error?",
+          "attempts": ["what is this?"],
           "error": "..."
         }
-      },
+      ],
       "qradar_offenses": [
         {
           "id": 123456,
@@ -65,7 +70,7 @@
         "network_address": "74.208.232.0",
         "prefix_len": 21
       },
-      "collection_results": {},
+      "collection_results": [],
       "qradar_offenses": []
     }
   ],
@@ -93,16 +98,21 @@
   ],
   "first_seen": "2023-09-11T14:54:31Z",
   "last_seen": "2023-10-24T13:48:34Z",
-  "collection_results": {
-    "<src>": {
-      "result": "<result>",
-      "attempts": [],
+  "collection_results": [
+    {
+      "source": "DNS | RDAP | ...etc",
+      "result": "<result> string? ok/error?",
+      "attempts": ["what is this?"],
       "error": "..."
     }
-  },
-  "prefilter_results": {
-    "<filter>": "něco"
-  },
-  "nějaký_misp": {}
+  ],
+  "prefilter_results": [
+    {
+      "filter": "<filter>",
+      "něco": "něco..."
+    }
+  ],
+  "nějaký_misp": {},
+  "additional_info": {"cokoliv": "cokoliv..."}
 }
 ```
