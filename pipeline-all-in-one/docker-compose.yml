@@ -27,7 +27,7 @@ services:
       kafka-network:
         ipv4_address: 192.168.45.20
     ports:
-      - "9094:9093"
+      - "9094:9094"
     env_file:
       - ./kafka2.env
 
@@ -46,9 +46,8 @@ services:
     volumes:
       - ./initializer.client.properties:/scripts/client.properties
     environment:
-      - BOOTSTRAP=kafka1:9093,kafka2:9093
+      - BOOTSTRAP=kafka1:9093,kafka2:9094
       - COMMAND_CONFIG_FILE=/scripts/client.properties
-    entrypoint: /bin/bash
 
   # collector-zone:
   #   image: domrad-java:latest

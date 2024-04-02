@@ -4,7 +4,7 @@ BOOTSTRAP=${BOOTSTRAP:-kafka1:9092}
 KAFKA_BIN_DIR=${KAFKA_BIN_DIR:-/opt/kafka/bin}
 COMMAND_CONFIG_FILE=${COMMAND_CONFIG_FILE:-client.properties}
 TOPICS_SCRIPT="$KAFKA_BIN_DIR/kafka-topics.sh"
-VERBOSE_TOPICS_AFTER=${VERBOSE_TOPICS_AFTER:-1}
+VERBOSE_TOPICS_AFTER=${VERBOSE_TOPICS_AFTER:-0}
 
 touch "$COMMAND_CONFIG_FILE"
 # List existing topics and store them in a variable
@@ -32,7 +32,7 @@ for i in "${!TOPICS[@]}"; do
 
     if ! topic_exists "$topic"; then
         echo "Creating topic: $topic ($partitions partitions)."
-        $TOPICS_SCRIPT --create --bootstrap-server "$BOOTSTRAP" \
+        $TOPICS_SCRIPT --create --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" \
           --replication-factor 1 --partitions "$partitions" --topic "$topic"
     fi
 done
@@ -40,7 +40,7 @@ done
 echo "-------"
 
 echo Topics after:
-if $VERBOSE_TOPICS_AFTER; then
+if [[ $VERBOSE_TOPICS_AFTER -eq 1 ]]; then
   $TOPICS_SCRIPT --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" --list | xargs \
     -L1 $TOPICS_SCRIPT --command-config "$COMMAND_CONFIG_FILE" --bootstrap-server "$BOOTSTRAP" \
     --describe --topic

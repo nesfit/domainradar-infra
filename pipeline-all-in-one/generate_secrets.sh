@@ -1,19 +1,17 @@
 #!/bin/bash
 
-BROKER_IPS=("192.168.45.10" "192.168.45.20")
-
-SECRETS_DIR="secrets"
 BROKER_KEY_VALIDITY_DAYS=3650
-
 CLIENT_CERT_VALIDITY_DAYS=730
-NUM_CLIENTS=5
+NUM_CLIENTS=2
 CLIENT_PASSWORDS=("secret_client1_password" "secret_client2_password" "secret_client3_password" "secret_client4_password" "secret_client5_password")
-
-CA_KEYSTORE="ca"
-CA_PASSWORD="${1:-"secret_ca_password"}"
-TRUSTSTORE_PASSWORD="${2:-"secret_truststore_password"}"
+CA_PASSWORD="secret_ca_password"
+TRUSTSTORE_PASSWORD="secret_truststore_password"
 BROKER_PASSWORDS=("secret_broker1_password" "secret_broker2_password")
 
+SECRETS_DIR="secrets"
+CA_KEYSTORE="ca"
+
+BROKER_IPS=("192.168.45.10" "192.168.45.20")
 
 echo "Making directories"
 
@@ -28,7 +26,8 @@ echo "Creating CA..."
 
 cd "$CA_KEYSTORE" || exit
 openssl req -x509 -config "../../openssl-ca.cnf" -newkey rsa:4096 -sha256 -nodes \
-    -keyout "ca-key" -out "ca-cert" -passout "pass:$CA_PASSWORD"
+    -keyout "ca-key" -out "ca-cert" -passout "pass:$CA_PASSWORD" \
+    -subj "/CN=RootCA/O=DomainRadar/L=Brno/C=CZ"
 cd .. || exit
 
 # Create truststore and import CA cert
@@ -45,11 +44,11 @@ for i in 1 2; do
         -genkey -keyalg RSA \
         -storepass "${BROKER_PASSWORDS[$i-1]}" -keypass "${BROKER_PASSWORDS[$i-1]}" \
         -dname "CN=kafka$i, OU=Brokers, O=DomainRadar, C=CZ" \
-        -ext "SAN=DNS:kafka$i,IP:${BROKER_IPS[$i-1]}"
+        -ext "SAN=DNS:kafka$i,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
 
     keytool -keystore kafka$i.keystore.jks -alias kafka$i -certreq -file kafka$i.csr \
         -storepass "${BROKER_PASSWORDS[$i-1]}" -keypass "${BROKER_PASSWORDS[$i-1]}" \
-        -ext "SAN=DNS:kafka$i,IP:${BROKER_IPS[$i-1]}"
+        -ext "SAN=DNS:kafka$i,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
 
     cd "$CA_KEYSTORE" || exit
     openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
@@ -79,12 +78,17 @@ for i in $(seq 1 $NUM_CLIENTS); do
     
     cd "$CA_KEYSTORE" || exit
     openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
-        -out "../client$i-cert-signed" -infiles "../client$i.csr"
+        -out "../client$i-cert.pem" -infiles "../client$i.csr"
     cd .. || exit
 
+    # Import the CA certificate
     keytool -keystore "client$i.keystore.jks" -alias CARoot -import -file "$CA_KEYSTORE/ca-cert" -storepass "$CLIENT_PASSWORD" -noprompt
-
-    keytool -keystore "client$i.keystore.jks" -alias "client$i" -import -file "client$i-cert-signed" -storepass "$CLIENT_PASSWORD" -noprompt
+    # Import the signed clientcertificate
+    keytool -keystore "client$i.keystore.jks" -alias "client$i" -import -file "client$i-cert.pem" -storepass "$CLIENT_PASSWORD" -noprompt
+    # Export to PKCS12 and then to PEM
+    keytool -importkeystore -srckeystore "client$i.keystore.jks" -srcstorepass "$CLIENT_PASSWORD" -destkeystore "client$i.keystore.p12" -deststoretype PKCS12 -deststorepass "$CLIENT_PASSWORD"
+    openssl pkcs12 -in "client$i.keystore.p12" -nocerts -out "client$i-priv-key.pem" -passin "pass:$CLIENT_PASSWORD" -passout "pass:$CLIENT_PASSWORD"
+    rm "client$i.keystore.p12"
 
     rm ./*.csr
     mkdir -p "secrets_client$i"
