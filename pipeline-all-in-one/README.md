@@ -23,7 +23,7 @@ For the love of god, don't use the generated keys and certificates outside of de
 
 ## Usage
 
-When you have your crypto goodies ready, you can simple start the containers. It should automagically work:
+When you have your crypto goodies ready, you can simply start the containers. It should automagically work:
 
 ```bash
 docker compose up
@@ -32,6 +32,8 @@ docker compose up
 ### Accessing Kafka
 
 Should you need to connect to Kafka from the outside world, the two brokers are published to the host machine on ports **9093** and **9094**. You should modify your `/etc/hosts` file to point `kafka1` and `kafka2` to 127.0.0.1.
+
+The Compose configuration defines a *bridge* network `kafka-network`. You can add other containers to it and access Kafka using the same ports. The broker containers have fixed IPs: 192.168.45.10 and 192.168.45.20; however, you should always use the hostnames `kafka1` and `kafka2` to access them.
 
 Mind that in the default configuration, client authentication is **required** so you have to use one of the generated client certificates. You can also modify the broker configuration to allow plaintext communication (see below).
 
