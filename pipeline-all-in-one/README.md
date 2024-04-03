@@ -1,10 +1,17 @@
 # All-in-one Kafka & Pipeline
 
-This folder contains a Docker Compose file for an all-in-one testing environment with encrypted Kafka cluster, the collectors, the extractor and the classifier.
+This folder contains a Docker Compose setup for an all-in-one testing environment with a Kafka cluster using encrypted communication, the collectors, the extractor and the classifier.
 
 ## Preparation
 
-First (and only once) you have to generate a CA, broker certificates and client certificates. You need to install openssl and Java (JRE is fine). Then you can simply run:
+### Data
+
+- Obtain your GeoLite2 City & ASN databases and place them in *geoip\_data*.
+- Obtain a NERD token and place it in your *client\_properties/nerd.properties*.
+
+### Security
+
+You have to generate a CA, broker certificates and client certificates. You need to install openssl and Java (JRE is fine). Then you can simply run:
 
 ```bash
 ./generate_secrets.sh
@@ -17,13 +24,25 @@ docker build . --tag generate-secrets -f generate_secrets.Dockerfile
 docker run -v $PWD/secrets:/pipeline-all-in-one/secrets generate-secrets:latest
 ```
 
-You can change the certificates' validity and passwords by setting the variables at the top of that script. If you do, you have to also change the passwords in the _kafka\*.env_ files and the _\*.properties_ files for the initializer and all the clients.
+You can change the certificates' validity and passwords by setting the variables at the top of that script. If you do, you have to also change the passwords in the _kafka\*.env_ files and the files in _client\_properties/_ for all the clients.
 
 For the love of god, don't use the generated keys and certificates outside of development. (If you do, at least store the CA somewhere safe.)
 
+### Component images
+
+Clone the [domainradar-colext](https://github.com/nesfit/domainradar-colext/) repo and build the Docker images:
+
+```bash
+cd java_pipeline
+docker build --target streams -t domrad-java-streams .
+docker build --target standalone -t domrad-java-standalone .
+cd ../python_pipeline
+docker build --target production -t domrad-python .
+```
+
 ## Usage
 
-When you have your crypto goodies ready, you can simply start the containers. It should automagically work:
+When you have your setup and crypto goodies ready, you can simply start the containers. It should automagically work:
 
 ```bash
 docker compose up
@@ -51,9 +70,9 @@ If you want to test with more Kafka nodes, you have to:
 - Add the new internal broker IPs to `KAFKA_CONTROLLER_QUORUM_VOTERS` in **all** the *kafkaN.env* files.
 - Add a new service to the Compose file:
     - copy an existing definition,
-    - change the IP address in the service,
-    - add it to the IPAM config in the `networks` section of the Compose file.
+    - change the IP address in the service.
 - Update the `BOOTSTRAP` environment variable for the _initializer_ service (in the Compose file).
+- Update the `-s` argument in all the component services.
 
 ### Using SSL for inter-broker communication
 

@@ -1,1 +1,2 @@
 secrets/
+geoip_data/*.mmdb
