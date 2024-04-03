@@ -9,8 +9,10 @@ services:
       - kafka-truststore
       - kafka1-keystore
     networks:
-      kafka-network:
+      kafka-client-network:
         ipv4_address: 192.168.45.10
+      kafka-inter-node-network:
+        ipv4_address: 192.168.55.10
     ports:
       - "9093:9093"
     env_file:
@@ -24,8 +26,10 @@ services:
       - kafka-truststore
       - kafka2-keystore
     networks:
-      kafka-network:
+      kafka-client-network:
         ipv4_address: 192.168.45.20
+      kafka-inter-node-network:
+        ipv4_address: 192.168.55.20
     ports:
       - "9094:9094"
     env_file:
@@ -42,7 +46,7 @@ services:
       - kafka-truststore
       - client1-keystore
     networks:
-      - kafka-network
+      - kafka-client-network
     volumes:
       - ./initializer.client.properties:/scripts/client.properties
     environment:
@@ -61,7 +65,7 @@ volumes:
   kafka2-log:
 
 networks:
-  kafka-network:
+  kafka-client-network:
     driver: bridge
     enable_ipv6: false
     ipam:
@@ -69,6 +73,14 @@ networks:
       config:
         - subnet: 192.168.45.0/24
           ip_range: 192.168.45.0/24
+  kafka-inter-node-network:
+    driver: bridge
+    enable_ipv6: false
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.55.0/24
+          ip_range: 192.168.55.0/24
   collector-network:
     driver: host
     enable_ipv6: true

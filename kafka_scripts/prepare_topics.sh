@@ -22,7 +22,9 @@ topic_exists() {
 TOPICS=(to_process_zone to_process_DNS to_process_RDAP_DN to_process_IP processed_zone processed_DNS processed_RDAP_DN collected_IP_data merged_DNS_IP all_collected_data)
 PARTITIONS=(4 4 4 4 4 4 4 4 4 4)
 
-echo Topics before:
+SKIP_AFTER="yes"
+
+echo Current topics:
 echo "$EXISTING_TOPICS"
 echo "-------"
 
@@ -31,11 +33,17 @@ for i in "${!TOPICS[@]}"; do
     partitions="${PARTITIONS[$i]}"
 
     if ! topic_exists "$topic"; then
+        SKIP_AFTER="no"
         echo "Creating topic: $topic ($partitions partitions)."
         $TOPICS_SCRIPT --create --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" \
           --replication-factor 1 --partitions "$partitions" --topic "$topic"
     fi
 done
+
+if [[ $SKIP_AFTER=="yes" ]]; then
+  echo "No new topics were created."
+  exit 0
+fi
 
 echo "-------"
 

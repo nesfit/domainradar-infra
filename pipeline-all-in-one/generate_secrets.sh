@@ -2,10 +2,13 @@
 
 BROKER_KEY_VALIDITY_DAYS=3650
 CLIENT_CERT_VALIDITY_DAYS=730
-NUM_CLIENTS=2
-CLIENT_PASSWORDS=("secret_client1_password" "secret_client2_password" "secret_client3_password" "secret_client4_password" "secret_client5_password")
+
 CA_PASSWORD="secret_ca_password"
 TRUSTSTORE_PASSWORD="secret_truststore_password"
+
+NUM_CLIENTS=2
+NUM_BROKERS=2
+CLIENT_PASSWORDS=("secret_client1_password" "secret_client2_password" "secret_client3_password" "secret_client4_password" "secret_client5_password")
 BROKER_PASSWORDS=("secret_broker1_password" "secret_broker2_password")
 
 SECRETS_DIR="secrets"
@@ -36,7 +39,7 @@ keytool -keystore kafka.truststore.jks -alias CARoot -import -file ca/ca-cert \
     -storepass "$TRUSTSTORE_PASSWORD" -noprompt
 
 # For each broker: create keystore, generate keypair, create CSR, sign CSR with CA, import both CA and signed cert into keystore
-for i in 1 2; do
+for i in {1..$NUM_BROKERS}; do
     echo "----------------------------"
     echo "Processing broker kafka$i..."
     
