@@ -39,6 +39,21 @@ services:
     env_file:
       - ./kafka2.env
 
+  webui:
+    image: tchiotludo/akhq
+    depends_on:
+      - kafka1
+      - kafka2
+    secrets:
+      - kafka-truststore
+      - client1-keystore
+    networks:
+      - kafka-client-network
+    ports:
+      - "9980:8080"
+    volumes:
+      - ./client_properties/akhq.yml:/app/application.yml
+
   initializer:
     build:
       context: ..  # The root of the domainradar repo

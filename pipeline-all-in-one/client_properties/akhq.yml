@@ -1,0 +1,31 @@
+akhq:
+  micronaut:
+    security:
+      enabled: false
+  server:
+    access-log:
+      enabled: false
+  connections:
+    the-cluster:
+      properties:
+        bootstrap.servers: "kafka1:9093,kafka2:9094"
+        client.id: client1
+        security.protocol: SSL
+        ssl.truststore.location: /run/secrets/kafka-truststore
+        ssl.truststore.password: secret_truststore_password
+        ssl.keystore.location: /run/secrets/client1-keystore
+        ssl.keystore.password: secret_client1_password
+        # ssl.key.password: secret_client1_password
+  pagination:
+    page-size: 32
+    threads: 8
+  ui-options:
+    topic:
+      default-view: HIDE_INTERNAL
+      skip-consumer-groups: false
+      skip-last-record: false
+      show-all-consumer-groups: true
+    topic-data:
+      sort: NEWEST
+
+ 
