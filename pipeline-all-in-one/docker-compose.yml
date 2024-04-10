@@ -39,6 +39,22 @@ services:
     env_file:
       - ./kafka2.env
 
+    kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      - kafka1
+    secrets:
+      - kafka-truststore
+      - client1-keystore
+    networks:
+      - kafka-client-network
+    ports:
+      - 9980:8080
+    volumes:
+      - ./client_properties/kafka_ui.yml:/etc/kafkaui/dynamic_config.yaml
+    env_file:
+      - ./kafka_ui.env
+
   initializer:
     build:
       context: ..  # The root of the domainradar repo
@@ -118,6 +134,54 @@ services:
       - ./client_properties/geoip.properties:/app/client.properties
       - ./geoip_data/:/app/geoip/
 
+  collector-rdap-dn:
+    image: domrad-python
+    command: [ "collector.rdap_dn" ]
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    secrets:
+      - ca-cert
+      - client2-cert
+      - client2-key
+    networks:
+      - kafka-client-network
+      - collector-network
+    volumes:
+      - ./client_properties/rdap_dn.toml:/app/config.toml
+    
+  collector-rdap-ip:
+    image: domrad-python
+    command: [ "collector.rdap_ip" ]
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    secrets:
+      - ca-cert
+      - client2-cert
+      - client2-key
+    networks:
+      - kafka-client-network
+      - collector-network
+    volumes:
+      - ./client_properties/rdap_ip.toml:/app/config.toml
+
+  collector-rtt:
+    image: domrad-python
+    command: [ "collector.rtt" ]
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    secrets:
+      - ca-cert
+      - client2-cert
+      - client2-key
+    networks:
+      - kafka-client-network
+      - collector-network
+    volumes:
+      - ./client_properties/rtt.toml:/app/config.toml
+
   merger-ip:
     image: domrad-java-streams:latest
     command: [ "--ip-merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger-ip", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
@@ -175,6 +239,7 @@ networks:
     ipam:
       driver: default
       config:
+        - subnet: 10.0.45.0/24
         - subnet: fd10:3456:789a:1::/64
 
 secrets:
@@ -188,4 +253,9 @@ secrets:
     file: ./secrets/secrets_client1/client1.keystore.jks
   client2-keystore:
     file: ./secrets/secrets_client2/client2.keystore.jks
-    
+  ca-cert:
+    file: ./secrets/ca/ca-cert
+  client2-cert:
+    file: ./secrets/secrets_client2/client2-cert.pem
+  client2-key:
+    file: ./secrets/secrets_client2/client2-priv-key.pem
