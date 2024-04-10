@@ -39,7 +39,7 @@ services:
     env_file:
       - ./kafka2.env
 
-    kafka-ui:
+  kafka-ui:
     image: provectuslabs/kafka-ui:latest
     depends_on:
       - kafka1
