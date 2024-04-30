@@ -54,6 +54,8 @@ services:
       - ./client_properties/kafka_ui.yml:/etc/kafkaui/dynamic_config.yaml
     env_file:
       - ./kafka_ui.env
+    environment:
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:9093,kafka2:9094
 
   initializer:
     build:
