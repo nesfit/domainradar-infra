@@ -40,7 +40,7 @@ for i in "${!TOPICS[@]}"; do
     fi
 done
 
-if [[ $SKIP_AFTER=="yes" ]]; then
+if [[ "$SKIP_AFTER" = "yes" ]]; then
   echo "No new topics were created."
   exit 0
 fi
