@@ -32,111 +32,12 @@
 			"cipher": "TLS_AES_256_GCM_SHA384",
 			"certificates": [
 				{
-					"commonName": "eva.fit.vutbr.cz",
-					"country": "",
-					"isRoot": false,
-					"organization": "",
-					"validLen": 7775999,
-					"validityEnd": 1722107262000,
-					"validityStart": 1714331263000,
-					"extensions": [
-						{
-							"critical": true,
-							"oid": "2.5.29.15",
-							"valueEncoded": "BAQDAgWg"
-						},
-						{
-							"critical": true,
-							"oid": "2.5.29.19",
-							"valueEncoded": "BAIwAA=="
-						},
-						{
-							"critical": false,
-							"oid": "1.3.6.1.4.1.11129.2.4.2",
-							"valueEncoded": "BIH1BIHyAPAAdQBIsONr2qZHNA/lagL6nTDrHFIBy1bdLIHZu7+rOdiEcwAAAY8mUhAvAAAEAwBGMEQCIBsnHRdstyL1LsSlbXsBsndzGKFcv62sawCfGjoeY8juAiA6srsiMGTVD8KJOZ0EJ5Caru8f0+MgC1dVvKfdMXl0zgB3AN/hVuuqBa+1nA+GcY2owDJOrlbZbqf1pWoB0cE7vlJcAAABjyZSEOgAAAQDAEgwRgIhAKCZt0tDMGD7nRabGIq9doXrLIwQ+pCs2MIug7+WEOWkAiEAi3i9GEasH6c8wlOEwlrnXFCoGvtzzgKZbNLRP7fmzTE="
-						},
-						{
-							"critical": false,
-							"oid": "1.3.6.1.5.5.7.1.1",
-							"valueEncoded": "BEkwRzAhBggrBgEFBQcwAYYVaHR0cDovL3IzLm8ubGVuY3Iub3JnMCIGCCsGAQUFBzAChhZodHRwOi8vcjMuaS5sZW5jci5vcmcv"
-						},
-						{
-							"critical": false,
-							"oid": "2.5.29.14",
-							"valueEncoded": "BBYEFLuE9H702GtxZpipxig1+wcJejVm"
-						},
-						{
-							"critical": false,
-							"oid": "2.5.29.17",
-							"valueEncoded": "BIG1MIGyghBldmEuZml0LnZ1dGJyLmN6ghRpbWFwLnN0dWQuZml0LnZ1dC5jeoIWaW1hcC5zdHVkLmZpdC52dXRici5jeoIWcG9wMy5zdHVkLmZpdC52dXRici5jeoIUc210cC5zdHVkLmZpdC52dXQuY3qCFnNtdHAuc3R1ZC5maXQudnV0YnIuY3qCE3d3dy5zdHVkLmZpdC52dXQuY3qCFXd3dy5zdHVkLmZpdC52dXRici5jeg=="
-						},
-						{
-							"critical": false,
-							"oid": "2.5.29.32",
-							"valueEncoded": "BAwwCjAIBgZngQwBAgE="
-						},
-						{
-							"critical": false,
-							"oid": "2.5.29.35",
-							"valueEncoded": "BBgwFoAUFC6zF7dYVsuuUAlA5h+vnYsUwsY="
-						},
-						{
-							"critical": false,
-							"oid": "2.5.29.37",
-							"valueEncoded": "BBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC"
-						}
-					]
+					"dn": "CN=eva.fit.vutbr.cz",
+					"derData": "MIIFkDCCBHigAwIBAgISBAzrRlYNsNviZtL59vEmmHDYMA0GCSqGSIb3DQEBCwUAMDIxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQDEwJSMzAeFw0yNDA0MjgxOTA3NDNaFw0yNDA3MjcxOTA3NDJaMBsxGTAXBgNVBAMTEGV2YS5maXQudnV0YnIuY3owggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC5CfNM8mGpwG8ami0dvSh0Zssfk1EFKQ/nJVG0WC05feHT9d2c8GI8XRdFT2vTSRomSuLl12OpGTTjxMZEXHIonngCC7sKTKG/WP5hb0aw/uvOQhF7VrzYpWbmzasu5EyhYu50DpY2Afd3RdTblrtK53cqlA/fi1uumeM3N7ZtMo2/blShW66s6nCXrjNj23VzkXCIJZk0wRFViVR1kjH+Zd3cf6FJeRgcnfnL5UGjMYAW61bJhkR5YJbs+LUuffNY+qF6JVK6KI8FJUMVEsAFS9GbOShIAXs17EjsE/zJnJQ47N1ZjNJh4l55awylVHXWmCAiNafLctZZcO4USeANAgMBAAGjggK1MIICsTAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFLuE9H702GtxZpipxig1+wcJejVmMB8GA1UdIwQYMBaAFBQusxe3WFbLrlAJQOYfr52LFMLGMFUGCCsGAQUFBwEBBEkwRzAhBggrBgEFBQcwAYYVaHR0cDovL3IzLm8ubGVuY3Iub3JnMCIGCCsGAQUFBzAChhZodHRwOi8vcjMuaS5sZW5jci5vcmcvMIG9BgNVHREEgbUwgbKCEGV2YS5maXQudnV0YnIuY3qCFGltYXAuc3R1ZC5maXQudnV0LmN6ghZpbWFwLnN0dWQuZml0LnZ1dGJyLmN6ghZwb3AzLnN0dWQuZml0LnZ1dGJyLmN6ghRzbXRwLnN0dWQuZml0LnZ1dC5jeoIWc210cC5zdHVkLmZpdC52dXRici5jeoITd3d3LnN0dWQuZml0LnZ1dC5jeoIVd3d3LnN0dWQuZml0LnZ1dGJyLmN6MBMGA1UdIAQMMAowCAYGZ4EMAQIBMIIBBAYKKwYBBAHWeQIEAgSB9QSB8gDwAHUASLDja9qmRzQP5WoC+p0w6xxSActW3SyB2bu/qznYhHMAAAGPJlIQLwAABAMARjBEAiAbJx0XbLci9S7EpW17AbJ3cxihXL+trGsAnxo6HmPI7gIgOrK7IjBk1Q/CiTmdBCeQmq7vH9PjIAtXVbyn3TF5dM4AdwDf4VbrqgWvtZwPhnGNqMAyTq5W2W6n9aVqAdHBO75SXAAAAY8mUhDoAAAEAwBIMEYCIQCgmbdLQzBg+50WmxiKvXaF6yyMEPqQrNjCLoO/lhDlpAIhAIt4vRhGrB+nPMJThMJa51xQqBr7c84CmWzS0T+35s0xMA0GCSqGSIb3DQEBCwUAA4IBAQAUUsq8Qbh1dqQDlCCy5zly6FoHX/Ncd1srq2+7jbCaFS++Vw1244qFdFjXOFjqnqFwuiMuT50Oxgq1lJ9QOvwdR9KOH9Xof2kaouKtZsPv/Qmj9of+G4TG1/0yiQGnVlhHyTW2SpswZuTBvQF/mCUpORyJVkjjoHhhYC2FamTW4oDCezhUGbIjyZYzDE4m4ppALdXt8rmdW/K4uBP2sTbIw9KrgAGfkU3C0FPZlYwcITlXt2JCP7tA9ShlcLPX4FRSdNl0GEEYeX05YuxNO9HlZh9OVPL29MLU/nh9EA2EodRv9rCPtfayvNuMP1rUQX8cM2TUJ6LMKJUIgPGfkS9h"
 				},
 				{
-					"commonName": "R3",
-					"country": "US",
-					"isRoot": true,
-					"organization": "Let's Encrypt",
-					"validLen": 158774400,
-					"validityEnd": 1757952000000,
-					"validityStart": 1599177600000,
-					"extensions": [
-						{
-							"critical": true,
-							"oid": "2.5.29.15",
-							"valueEncoded": "BAQDAgGG"
-						},
-						{
-							"critical": true,
-							"oid": "2.5.29.19",
-							"valueEncoded": "BAgwBgEB/wIBAA=="
-						},
-						{
-							"critical": false,
-							"oid": "1.3.6.1.5.5.7.1.1",
-							"valueEncoded": "BCYwJDAiBggrBgEFBQcwAoYWaHR0cDovL3gxLmkubGVuY3Iub3JnLw=="
-						},
-						{
-							"critical": false,
-							"oid": "2.5.29.14",
-							"valueEncoded": "BBYEFBQusxe3WFbLrlAJQOYfr52LFMLG"
-						},
-						{
-							"critical": false,
-							"oid": "2.5.29.31",
-							"valueEncoded": "BCAwHjAcoBqgGIYWaHR0cDovL3gxLmMubGVuY3Iub3JnLw=="
-						},
-						{
-							"critical": false,
-							"oid": "2.5.29.32",
-							"valueEncoded": "BBswGTAIBgZngQwBAgEwDQYLKwYBBAGC3xMBAQE="
-						},
-						{
-							"critical": false,
-							"oid": "2.5.29.35",
-							"valueEncoded": "BBgwFoAUebRZ5nu25eQBc4AIiMgaWPbpm24="
-						},
-						{
-							"critical": false,
-							"oid": "2.5.29.37",
-							"valueEncoded": "BBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMB"
-						}
-					]
+					"dn": "CN=R3, O=Let's Encrypt, C=US",
+					"derData": "MIIFFjCCAv6gAwIBAgIRAJErCErPDBinU/bWLiWnX1owDQYJKoZIhvcNAQELBQAwTzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2VhcmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMjAwOTA0MDAwMDAwWhcNMjUwOTE1MTYwMDAwWjAyMQswCQYDVQQGEwJVUzEWMBQGA1UEChMNTGV0J3MgRW5jcnlwdDELMAkGA1UEAxMCUjMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC7AhUozPaglNMPEuyNVZLD+ILxmaZ6QoinXSaqtSu5xUyxr45r+XXIo9cPR5QUVTVXjJ6oojkZ9YI8QqlObvU7wy7bjcCwXPNZOOftz2nwWgsbvsCUJCWH+jdxsxPnHKzhm+/b5DtFUkWWqcFTzjTIUu61ru2P3mBw4qVUq7ZtDpelQDRrK9O8ZutmNHz6a4uPVymZ+DAXXbpyb/uBxa3Shlg9F8fnCbvxK/eG3MHacV3URuPMrSXBiLxgZ3Vms/EY96Jc5lP/Ooi2R6X/ExjqmAl3P51T+c8B5fWmcBcUr2Ok/5mzk53cU6cG/kiFHaFpriV1uxPMUgP17VGhi9sVAgMBAAGjggEIMIIBBDAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFBQusxe3WFbLrlAJQOYfr52LFMLGMB8GA1UdIwQYMBaAFHm0WeZ7tuXkAXOACIjIGlj26ZtuMDIGCCsGAQUFBwEBBCYwJDAiBggrBgEFBQcwAoYWaHR0cDovL3gxLmkubGVuY3Iub3JnLzAnBgNVHR8EIDAeMBygGqAYhhZodHRwOi8veDEuYy5sZW5jci5vcmcvMCIGA1UdIAQbMBkwCAYGZ4EMAQIBMA0GCysGAQQBgt8TAQEBMA0GCSqGSIb3DQEBCwUAA4ICAQCFyk5HPqP3hUSFvNVneLKYY611TR6WPTNlclQtgaDqw+34IL9fzLdwALduO/ZelN7kIJ+m74uyA+eitRY8kc607TkC53wlikfmZW4/RvTZ8M6UK+5UzhK8jCdLuMGYL6KvzXGRSgi3yLgjewQtCPkIVz6D2QQzCkcheAmCJ8MqyJu5zlzyZMjAvnnAT45tRAxekrsu94sQ4egdRCnbWSDtY7kh+BImlJNXoB1lBMEKIq4QDUOXoRgffuDghje1WrG9ML+Hbisq/yFOGwXD9RiX8F6sw6W4avAuvDszue5L3sz85K+EC4Y/wFVDNvZo4TYXao6Z0f+lQKc0t8DQYzk1OXVu8rp2yJMC6alLbBfODALZvYH7n7do1AZls4I9d1P4jnkDrQoxB3UqQ9hVl3LEKQ73xF1OyK5GhDDX8oVfGKF5u+decIsH4YaTw7mP3GFxJSqv3+0lUFJoi5Lc5da149p90IdshCExroL1+7mryIkXPeFM5TgO9r0rvZaBFOvV2z0gp35Z0+L4WPlbuEjN/lxPFin+HlUjr8gRsI3qfJOQFy/9rKIJR0Y/8Omwt/8oTWgy1mdeHmmjk7j1nYsvC9JSQ6ZvMldlTTKB3zhThV1+XWYp6rjd5JW1zbVWEkLNxE7GJThEUG3szgBVGP7pSWTUTsqXnLRbwHOoq7hHwg=="
 				}
 			]
 		},
