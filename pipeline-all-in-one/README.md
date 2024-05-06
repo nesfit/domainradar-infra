@@ -37,7 +37,7 @@ cd java_pipeline
 docker build --target streams -t domrad-java-streams .
 docker build --target standalone -t domrad-java-standalone .
 cd ../python_pipeline
-docker build --target production -t domrad-python .
+./build_all_images.sh
 ```
 
 ## Usage

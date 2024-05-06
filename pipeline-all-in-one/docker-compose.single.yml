@@ -115,8 +115,7 @@ services:
       - ./geoip_data/:/app/geoip/
 
   collector-rdap-dn:
-    image: domrad-python
-    command: [ "collector.rdap_dn" ]
+    image: domrad-python/rdap_dn
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -131,8 +130,7 @@ services:
       - ./client_properties/rdap_dn.toml:/app/config.toml
     
   collector-rdap-ip:
-    image: domrad-python
-    command: [ "collector.rdap_ip" ]
+    image: domrad-python/rdap_ip
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -147,8 +145,7 @@ services:
       - ./client_properties/rdap_ip.toml:/app/config.toml
 
   collector-rtt:
-    image: domrad-python
-    command: [ "collector.rtt" ]
+    image: domrad-python/rtt
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -191,6 +188,35 @@ services:
       - collector-network
     volumes:
       - ./client_properties/mergers.properties:/app/client.properties
+
+  extractor:
+    image: domrad-python/extractor
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    secrets:
+      - ca-cert
+      - client2-cert
+      - client2-key
+    networks:
+      - kafka-client-network
+    volumes:
+      - ./client_properties/extractor.toml:/app/config.toml
+      - ./extractor_data/:/app/data/
+
+  classifier-unit:
+    image: domrad-python/classifier_unit
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    secrets:
+      - ca-cert
+      - client2-cert
+      - client2-key
+    networks:
+      - kafka-client-network
+    volumes:
+      - ./client_properties/classifier_unit.toml:/app/config.toml
 
 volumes:
   kafka1-single-log:
