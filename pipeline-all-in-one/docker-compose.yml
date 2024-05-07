@@ -5,7 +5,7 @@ services:
     image: apache/kafka:3.7.0
     hostname: kafka1
     volumes:
-      - kafka1-log:/var/lib/kafka/data
+      - kafka1-single-log:/var/lib/kafka/data
     secrets:
       - kafka-truststore
       - kafka1-keystore
@@ -13,31 +13,10 @@ services:
       kafka-client-network:
         ipv4_address: 192.168.45.10
         aliases: [ "kafka1" ]
-      kafka-inter-node-network:
-        ipv4_address: 192.168.55.10
     ports:
       - "9093:9093"
     env_file:
-      - ./kafka1.env
-
-  kafka2:
-    image: apache/kafka:3.7.0
-    hostname: kafka2
-    volumes:
-      - kafka2-log:/var/lib/kafka/data
-    secrets:
-      - kafka-truststore
-      - kafka2-keystore
-    networks:
-      kafka-client-network:
-        ipv4_address: 192.168.45.20
-        aliases: [ "kafka2" ]
-      kafka-inter-node-network:
-        ipv4_address: 192.168.55.20
-    ports:
-      - "9094:9094"
-    env_file:
-      - ./kafka2.env
+      - ./envs/kafka1_single.env
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -53,17 +32,16 @@ services:
     volumes:
       - ./client_properties/kafka_ui.yml:/etc/kafkaui/dynamic_config.yaml
     env_file:
-      - ./kafka_ui.env
+      - ./envs/kafka_ui.env
     environment:
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:9093,kafka2:9094
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:9093
 
   initializer:
     build:
       context: ..  # The root of the domainradar repo
-      dockerfile: ./pipeline-all-in-one/initializer.Dockerfile
+      dockerfile: ./pipeline-all-in-one/dockerfiles/initializer.Dockerfile
     depends_on:
       - kafka1
-      - kafka2
     secrets:
       - kafka-truststore
       - client1-keystore
@@ -72,12 +50,12 @@ services:
     volumes:
       - ./client_properties/initializer.properties:/scripts/client.properties
     environment:
-      - BOOTSTRAP=kafka1:9093,kafka2:9094
+      - BOOTSTRAP=kafka1:9093
       - COMMAND_CONFIG_FILE=/scripts/client.properties
 
   collector-zone:
-    image: domrad-java-standalone:latest
-    command: [ "--col-zone", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    image: domrad/java-standalone
+    command: [ "--col-zone", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -91,8 +69,8 @@ services:
       - ./client_properties/zone.properties:/app/client.properties
     
   collector-dns:
-    image: domrad-java-standalone:latest
-    command: [ "--col-dns", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    image: domrad/java-standalone
+    command: [ "--col-dns", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -106,8 +84,8 @@ services:
       - ./client_properties/dns.properties:/app/client.properties
 
   collector-nerd:
-    image: domrad-java-standalone:latest
-    command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    image: domrad/java-standalone
+    command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -121,8 +99,8 @@ services:
       - ./client_properties/nerd.properties:/app/client.properties
 
   collector-geoip:
-    image: domrad-java-streams:latest
-    command: [ "--col-geoip", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-geoip", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    image: domrad/java-streams
+    command: [ "--col-geoip", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-geoip", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -137,7 +115,7 @@ services:
       - ./geoip_data/:/app/geoip/
 
   collector-rdap-dn:
-    image: domrad-python/rdap_dn
+    image: domrad/rdap-dn
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -152,7 +130,7 @@ services:
       - ./client_properties/rdap_dn.toml:/app/config.toml
     
   collector-rdap-ip:
-    image: domrad-python/rdap_ip
+    image: domrad/rdap-ip
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -167,7 +145,7 @@ services:
       - ./client_properties/rdap_ip.toml:/app/config.toml
 
   collector-rtt:
-    image: domrad-python/rtt
+    image: domrad/rtt
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -182,8 +160,8 @@ services:
       - ./client_properties/rtt.toml:/app/config.toml
 
   merger-ip:
-    image: domrad-java-streams:latest
-    command: [ "--ip-merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger-ip", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    image: domrad/java-streams
+    command: [ "--ip-merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger-ip", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -197,8 +175,8 @@ services:
       - ./client_properties/mergers.properties:/app/client.properties
 
   merger-all:
-    image: domrad-java-streams:latest
-    command: [ "--domain-merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger-all", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    image: domrad/java-streams
+    command: [ "--domain-merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger-all", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -212,7 +190,7 @@ services:
       - ./client_properties/mergers.properties:/app/client.properties
 
   extractor:
-    image: domrad-python/extractor
+    image: domrad/extractor
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -224,9 +202,10 @@ services:
       - kafka-client-network
     volumes:
       - ./client_properties/extractor.toml:/app/config.toml
+      - ./extractor_data/:/app/data/
 
   classifier-unit:
-    image: domrad-python/classifier_unit
+    image: domrad/classifier
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -240,8 +219,7 @@ services:
       - ./client_properties/classifier_unit.toml:/app/config.toml
 
 volumes:
-  kafka1-log:
-  kafka2-log:
+  kafka1-single-log:
 
 networks:
   kafka-client-network:
@@ -252,14 +230,6 @@ networks:
       config:
         - subnet: 192.168.45.0/24
           ip_range: 192.168.45.0/24
-  kafka-inter-node-network:
-    driver: bridge
-    enable_ipv6: false
-    ipam:
-      driver: default
-      config:
-        - subnet: 192.168.55.0/24
-          ip_range: 192.168.55.0/24
   collector-network:
     driver: bridge
     enable_ipv6: true
@@ -274,8 +244,6 @@ secrets:
     file: ./secrets/kafka.truststore.jks
   kafka1-keystore:
     file: ./secrets/secrets_kafka1/kafka1.keystore.jks
-  kafka2-keystore:
-    file: ./secrets/secrets_kafka2/kafka2.keystore.jks
   client1-keystore:
     file: ./secrets/secrets_client1/client1.keystore.jks
   client2-keystore:

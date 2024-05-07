@@ -2,6 +2,10 @@
 
 This folder contains a Docker Compose setup for an all-in-one testing environment with a Kafka cluster using encrypted communication, the collectors, the extractor and the classifier.
 
+Two Compose files are included: the default [*docker-compose-yml*](./docker-compose.yml) for a single-broker setup, and [*cluster.docker-compose.yml*](./cluster.docker-compose.yml) for a two-brokers setup. 
+
+A Kafka web UI is also included. By default, it is exposed on port 9980 (i.e. accessible via http://localhost:9980) and no authentication is used.
+
 ## Preparation
 
 ### Data
@@ -11,33 +15,28 @@ This folder contains a Docker Compose setup for an all-in-one testing environmen
 
 ### Security
 
-You have to generate a CA, broker certificates and client certificates. You need to install openssl and Java (JRE is fine). Then you can simply run:
+You have to generate a CA, broker certificates and client certificates. You need to have openssl and Java installed (JRE is fine). Then you can simply run:
 
 ```bash
 ./generate_secrets.sh
 ``` 
 
-If you're too lazy to install Java, you can use the included `generate_secrets` Dockerfile:
+You can also use the included Docker image:
 
 ```bash
-docker build . --tag generate-secrets -f generate_secrets.Dockerfile
-docker run -v $PWD/secrets:/pipeline-all-in-one/secrets generate-secrets:latest
+./generate_secrets_docker.sh
 ```
 
-You can change the certificates' validity and passwords by setting the variables at the top of that script. If you do, you have to also change the passwords in the _kafka\*.env_ files and the files in _client\_properties/_ for all the clients.
+You can change the certificates' validity and passwords by setting the variables at the top of the *generate_secrets.sh* script. If you do, you have to also change the passwords in the _envs/kafka\*.env_ files and the files in _client\_properties/_ for all the clients.
 
 For the love of god, don't use the generated keys and certificates outside of development. (If you do, at least store the CA somewhere safe.)
 
 ### Component images
 
-Clone the [domainradar-colext](https://github.com/nesfit/domainradar-colext/) repo and build the Docker images:
+Clone the [domainradar-colext](https://github.com/nesfit/domainradar-colext/) repo and build the Docker images (use `-h` to see the possible flags):
 
 ```bash
-cd java_pipeline
-docker build --target streams -t domrad-java-streams .
-docker build --target standalone -t domrad-java-standalone .
-cd ../python_pipeline
-./build_all_images.sh
+./build_docker_images.sh
 ```
 
 ## Usage
@@ -47,6 +46,8 @@ When you have your setup and crypto goodies ready, you can simply start the cont
 ```bash
 docker compose up
 ```
+
+You can also add the `-d` flag to run the services in the background. The [*follow-component-logs.sh*](./follow-component-logs.sh) script can then be used to “reattach” to the output of all the pipeline components, without the Kafka cluster.
 
 ### Accessing Kafka
 
@@ -58,13 +59,23 @@ Mind that in the default configuration, client authentication is **required** so
 
 ## Under the hood & Modifications
 
-The Compose file builds a Kafka cluster of two nodes. They both run in the combined mode where each instance works both as a controller and as a broker. This is done simply to simulate a small cluster. Node-client communication enforces the use of SSL with client authentication; inter-controller and inter-broker communication are done in plaintext over a separate network (`kafka-inter-node-network`) to reduce overhead.
+The included configuration files are set up for the default single-broker configuration. To use the two-brokers configuration or even extend it to more nodes, follow the instructions in the following paragraphs.
+
+### Using Kafka with two nodes
+
+The *cluster.docker-compose.yml* Compose file builds a Kafka cluster of two nodes. They both run in the combined mode where each instance works both as a controller and as a broker. This is done simply to simulate a small cluster. Node-client communication enforces the use of SSL with client authentication; inter-controller and inter-broker communication are done in plaintext over a separate network (`kafka-inter-node-network`) to reduce overhead.
+
+Before using the , you need to change the `connection.brokers` setting in all the *client\_properties/\*.toml* client configuration files! Then, simply run:
+
+```bash
+docker compose -f cluster.docker-compose.yml up
+```
 
 ### Adding a Kafka node
 
 If you want to test with more Kafka nodes, you have to:
 - In *generate_secrets.sh*, change `NUM_BROKERS` and add an entry to `BROKER_PASSWORDS`; generate the new certificate(s).
-- Add a new _kafka**N**.env_ file:
+- Add a new _envs/kafka**N**.env_ file:
     - change the IP and hostname in `KAFKA_LISTENERS` and `KAFKA_ADVERTISED_LISTENERS`,
     - change the paths in `KAFKA_SSL_KEYSTORE_LOCATION` and password in `KAFKA_SSL_KEYSTORE_PASSWORD`.
 - Add the new internal broker IPs to `KAFKA_CONTROLLER_QUORUM_VOTERS` in **all** the *kafkaN.env* files.
@@ -72,24 +83,17 @@ If you want to test with more Kafka nodes, you have to:
     - copy an existing definition,
     - change the IP address in the service.
 - Update the `BOOTSTRAP` environment variable for the _initializer_ service (in the Compose file).
-- Update the `-s` argument in all the component services.
-- Update the *.toml* configurations for the Python clients.
-
-### Using single-node Kafka
-
-The repo comes with a pre-made Compose file *docker-compose.single.yml* for a single-node configuration. Before using it, you need to change the `connection.brokers` setting in all the *client\_properties/.toml* client configuration files and the *kafka\_ui.env* file. Then, simply run:
-
-```bash
-docker compose -f docker-compose.single.yml up
-```
+- Update the `KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS` env. variable for the _kafka-ui_ service (in the Compose file).
+- Update the `-s` argument in all the component services (in the Compose file).
+- Update the *.toml* configurations for the Python clients (in the *client\_properties/* directory).
 
 ### Using SSL for inter-broker communication
 
-If you want to use SSL in inter-broker communication as well (for some reason), it should suffice to change `KAFKA_LISTENER_SECURITY_PROTOCOL_MAP` in all *kafkaN.env* files. Set the controller and internal listener to use SSL: `CONTROLLER:SSL,INTERNAL:SSL`. Not tested in the current config.
+If you want to use SSL in inter-broker communication as well (for some reason), it should suffice to change `KAFKA_LISTENER_SECURITY_PROTOCOL_MAP` in all *envs/kafkaN.env* files. Set the controller and internal listener to use SSL: `CONTROLLER:SSL,INTERNAL:SSL`. Not tested in the current config.
 
 ### Enabling plaintext node-client communication
 
-If you want to enable plaintext node-client communication, you can switch the listener to plaintext. Modify the `KAFKA_LISTENER_SECURITY_PROTOCOL_MAP` in all *kafkaN.env* files to `CLIENTS:PLAINTEXT`.
+If you want to enable plaintext node-client communication, you can switch the listener to plaintext. Modify the `KAFKA_LISTENER_SECURITY_PROTOCOL_MAP` in all *envs/kafkaN.env* files to `CLIENTS:PLAINTEXT`.
 
 To disable client authentication, change `KAFKA_SSL_CLIENT_AUTH` to `none` or `requested`.
 

@@ -1,6 +1,6 @@
 [connection]
-# brokers = ["aiokafka://kafka1:9093"]
-brokers = ["aiokafka://kafka1:9093", "aiokafka://kafka2:9094"]
+brokers = ["aiokafka://kafka1:9093"]
+# brokers = ["aiokafka://kafka1:9093", "aiokafka://kafka2:9094"]
 use_ssl = true
 
 [connection.ssl]

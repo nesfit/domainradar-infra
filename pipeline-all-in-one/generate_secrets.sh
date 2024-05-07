@@ -1,7 +1,12 @@
 #!/bin/bash
 
-BROKER_KEY_VALIDITY_DAYS=3650
-CLIENT_CERT_VALIDITY_DAYS=730
+# Usage: ./generate_secrets.sh
+# Generates a self-signed CA, then generates SSL keys and signs certificates for Kafka brokers and clients.
+# Requires OpenSSL and Java JRE.
+
+CA_VALIDITY_DAYS=3650
+BROKER_KEY_VALIDITY_DAYS=730
+CLIENT_CERT_VALIDITY_DAYS=365
 
 CA_PASSWORD="secret_ca_password"
 TRUSTSTORE_PASSWORD="secret_truststore_password"
@@ -22,15 +27,15 @@ mkdir -p "$SECRETS_DIR" "$SECRETS_DIR/$CA_KEYSTORE"
 echo 01 > "$SECRETS_DIR/$CA_KEYSTORE/serial.txt"
 touch "$SECRETS_DIR/$CA_KEYSTORE/index.txt"
 
-cd "$SECRETS_DIR" || exit
+cd "$SECRETS_DIR" || exit 1
 
 # Generate Custom CA
 echo "Creating CA..."
 
-cd "$CA_KEYSTORE" || exit
+cd "$CA_KEYSTORE" || exit 1
 openssl req -x509 -config "../../openssl-ca.cnf" -newkey rsa:4096 -sha256 -nodes \
     -keyout "ca-key" -out "ca-cert" -passout "pass:$CA_PASSWORD" \
-    -subj "/CN=RootCA/O=DomainRadar/L=Brno/C=CZ"
+    -subj "/CN=RootCA/O=DomainRadar/L=Brno/C=CZ" -days "$CA_VALIDITY_DAYS"
 cd .. || exit
 
 # Create truststore and import CA cert
@@ -39,7 +44,7 @@ keytool -keystore kafka.truststore.jks -alias CARoot -import -file ca/ca-cert \
     -storepass "$TRUSTSTORE_PASSWORD" -noprompt
 
 # For each broker: create keystore, generate keypair, create CSR, sign CSR with CA, import both CA and signed cert into keystore
-for i in {1..$NUM_BROKERS}; do
+for ((i=1; i <= NUM_BROKERS; i++)); do
     echo "----------------------------"
     echo "Processing broker kafka$i..."
     
@@ -53,9 +58,9 @@ for i in {1..$NUM_BROKERS}; do
         -storepass "${BROKER_PASSWORDS[$i-1]}" -keypass "${BROKER_PASSWORDS[$i-1]}" \
         -ext "SAN=DNS:kafka$i,DNS:kafka$i.domrad,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
 
-    cd "$CA_KEYSTORE" || exit
+    cd "$CA_KEYSTORE" || exit 1
     openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
-        -out "../kafka$i-cert-signed" -infiles "../kafka$i.csr" 
+        -days "$BROKER_KEY_VALIDITY_DAYS" -out "../kafka$i-cert-signed" -infiles "../kafka$i.csr"
     cd .. || exit
 
     keytool -keystore kafka$i.keystore.jks -alias CARoot -import -file "$CA_KEYSTORE/ca-cert" -storepass "${BROKER_PASSWORDS[$i-1]}" -noprompt
@@ -68,20 +73,20 @@ for i in {1..$NUM_BROKERS}; do
 done
 
 # Generate client keypairs and certificates
-for i in $(seq 1 $NUM_CLIENTS); do
+for ((i=1; i <= NUM_CLIENTS; i++)); do
     echo "Creating client$i keystore and certificate..."
 
     CLIENT_PASSWORD="${CLIENT_PASSWORDS[$i-1]}"
 
     keytool -keystore "client$i.keystore.jks" -alias "client$i" -validity $CLIENT_CERT_VALIDITY_DAYS -genkey \
         -keyalg RSA -storepass "$CLIENT_PASSWORD" -keypass "$CLIENT_PASSWORD" \
-        -dname "CN=client$i, OU=KafkaClient, L=Brno, C=CZ"
+        -dname "CN=client$i, OU=KafkaClients, O=DomainRadar, L=Brno, C=CZ"
 
     keytool -keystore "client$i.keystore.jks" -alias "client$i" -certreq -file "client$i.csr" -storepass "$CLIENT_PASSWORD" -keypass "$CLIENT_PASSWORD"
     
-    cd "$CA_KEYSTORE" || exit
+    cd "$CA_KEYSTORE" || exit 1
     openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
-        -out "../client$i-cert.pem" -infiles "../client$i.csr"
+        -days "$CLIENT_CERT_VALIDITY_DAYS" -out "../client$i-cert.pem" -infiles "../client$i.csr"
     cd .. || exit
 
     # Import the CA certificate
