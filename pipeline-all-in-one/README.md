@@ -1,10 +1,10 @@
 # All-in-one Kafka & Pipeline
 
-This folder contains a Docker Compose setup for an all-in-one testing environment with a Kafka cluster using encrypted communication, the collectors, the extractor and the classifier.
+This folder contains a Docker Compose setup for an all-in-one testing environment. It includes a Kafka cluster using encrypted communication, the pipeline components (collectors, extractorm classifier), a PostgreSQL database, a MongoDB database, Kafka Connect configured to push data to them, and a web UI.
 
 Two Compose files are included: the default [*docker-compose-yml*](./docker-compose.yml) for a single-broker setup, and [*cluster.docker-compose.yml*](./cluster.docker-compose.yml) for a two-brokers setup. 
 
-A Kafka web UI is also included. By default, it is exposed on port 9980 (i.e. accessible via http://localhost:9980) and no authentication is used.
+By default, the web UI is exposed on port 9980 (i.e. accessible via http://localhost:9980) and no authentication is used.
 
 ## Preparation
 
