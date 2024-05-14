@@ -8,12 +8,14 @@ WORKDIR /opt/kafka-connect/plugins
 COPY ./connect_plugins/ .
 
 # Extract all zip files
-RUN compgen -G "*.zip" >/dev/null || exit 0 && \
+RUN ZIP_CNT=`ls -1 *.zip 2>/dev/null | wc -l` && \
+    echo "Found $ZIP_CNT zip file(s)" && \
+    if [ $ZIP_CNT != 0 ]; then \
     mkdir tmp && \
-    unzip '*.zip' -d tmp && \
+    unzip '*.zip' -d tmp >/dev/null && \
     rm *.zip && \
     mv tmp/* . && \
-    rmdir tmp
+    rmdir tmp; fi
 
 # Download the Mongo connector
 RUN wget -nv -O mongo-connect.jar ${MONGO_CONNECTOR_URL}

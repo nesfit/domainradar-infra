@@ -29,11 +29,11 @@ services:
       - kafka-client-network
       - db-network
     ports:
-      - "8083:8083"
+      - "31002:8083"
     volumes:
       - ./connect_properties/:/opt/kafka-connect/config/
-      #- type: tmpfs
-      #  target: /tmp/kafka-connect
+      - type: tmpfs
+        target: /tmp/kafka-connect
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -45,7 +45,7 @@ services:
     networks:
       - kafka-client-network
     ports:
-      - "9980:8080"
+      - "31000:8080"
     volumes:
       - ./client_properties/kafka_ui.yml:/etc/kafkaui/dynamic_config.yaml
     env_file:
@@ -126,7 +126,6 @@ services:
       - client2-keystore
     networks:
       - kafka-client-network
-      - collector-network
     volumes:
       - ./client_properties/geoip.properties:/app/client.properties
       - ./geoip_data/:/app/geoip/
@@ -187,7 +186,6 @@ services:
       - client2-keystore
     networks:
       - kafka-client-network
-      - collector-network
     volumes:
       - ./client_properties/mergers.properties:/app/client.properties
 
@@ -202,7 +200,6 @@ services:
       - client2-keystore
     networks:
       - kafka-client-network
-      - collector-network
     volumes:
       - ./client_properties/mergers.properties:/app/client.properties
 
@@ -245,16 +242,10 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 192.168.45.0/24
-          ip_range: 192.168.45.0/24
+        - subnet: 192.168.45.0/25
   db-network:
-    driver: bridge
-    enable_ipv6: false
-    ipam:
-      driver: default
-      config:
-        - subnet: 192.168.65.0/24
-          ip_range: 192.168.65.0/24
+    name: domainradar-db-network
+    external: true
   collector-network:
     driver: bridge
     enable_ipv6: true

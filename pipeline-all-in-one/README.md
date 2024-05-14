@@ -1,10 +1,24 @@
 # All-in-one Kafka & Pipeline
 
-This folder contains a Docker Compose setup for an all-in-one testing environment. It includes a Kafka cluster using encrypted communication, the pipeline components (collectors, extractorm classifier), a PostgreSQL database, a MongoDB database, Kafka Connect configured to push data to them, and a web UI.
+This folder contains a Docker Compose setup for a DomainRadar testing environment. It includes a Kafka cluster using encrypted communication, the pipeline components (collectors, extractor, classifier), a PostgreSQL database, a MongoDB database, Kafka Connect configured to push data to them, and a web UI.
 
-Two Compose files are included: the default [*docker-compose-yml*](./docker-compose.yml) for a single-broker setup, and [*cluster.docker-compose.yml*](./cluster.docker-compose.yml) for a two-brokers setup. 
+Three Compose files are included. The default [*docker-compose-yml*](./docker-compose.yml) file provides a single-broker setup, while the[*cluster.docker-compose.yml*](./cluster.docker-compose.yml) file provides a two-brokers setup. The database services are provided by a separate Dockerfile, [*db.docker-compose.yml*](./db.docker-compose.yml).
 
-By default, the web UI is exposed on port 9980 (i.e. accessible via http://localhost:9980) and no authentication is used.
+## Exposed ports and services
+
+- _kafka1_, the first Kafka broker: 9093
+    - SSL authentication, see below.
+- _kafka2_, the second Kafka broker: 9094 (two-brokers setup only)
+- _kafka-ui_, the Kafka web UI: 31000
+    - No authentication is used!
+- _adminer_, a web tool for accessing Postgres or Mongo: 31001
+    - Credentials must be provided manually when opened.
+- _kafka-connect_, the Kafka Connect REST API: 31002
+    - No authentication (will be changed).
+- _postgres_, the PostgreSQL database: 31010
+    - Password (SCRAM) authentication (probably will be changed, see below).
+- _mongo_, the MongoDB Community database: 31011
+    - Password (SCRAM) authentication (probably will be changed, see below).
 
 ## Preparation
 
@@ -31,6 +45,10 @@ You can change the certificates' validity and passwords by setting the variables
 
 For the love of god, don't use the generated keys and certificates outside of development. (If you do, at least store the CA somewhere safe.)
 
+---
+
+The _db_ directory contains configuration for the database, including user passwords. Be sure to change them when actually deploying this somewhere. The passwords must be set accordingly in the services that use them, i.e., Kafka Connect (*connect_properties*), the prefilter, the UI, the ingestion controller (not yet included).
+
 ### Component images
 
 Clone the [domainradar-colext](https://github.com/nesfit/domainradar-colext/) repo and build the Docker images (use `-h` to see the possible flags):
@@ -41,13 +59,21 @@ Clone the [domainradar-colext](https://github.com/nesfit/domainradar-colext/) re
 
 ## Usage
 
-When you have your setup and crypto goodies ready, you can simply start the containers. It should automagically work:
+First, start the database services:
+
+```bash
+docker compose -f db.docker-compose.yml up -d
+```
+
+Then start the Kafka and DomainRadar pipeline services:
 
 ```bash
 docker compose up
 ```
 
 You can also add the `-d` flag to run the services in the background. The [*follow-component-logs.sh*](./follow-component-logs.sh) script can then be used to “reattach” to the output of all the pipeline components, without the Kafka cluster.
+
+The pipeline services use a Docker network called `domainradar-db-network` created by the `db` Compose file. It **won't start** if this network doesn't exist.
 
 ### Accessing Kafka
 
@@ -57,7 +83,7 @@ The Compose configuration defines a *bridge* network `kafka-client-network`. You
 
 Mind that in the default configuration, client authentication is **required** so you have to use one of the generated client certificates. You can also modify the broker configuration to allow plaintext communication (see below).
 
-## Under the hood & Modifications
+## Pipeline "under the hood" & modifications
 
 The included configuration files are set up for the default single-broker configuration. To use the two-brokers configuration or even extend it to more nodes, follow the instructions in the following paragraphs.
 
@@ -109,3 +135,7 @@ ports:
 ```
 
 Adjust the host port if you need. In IntelliJ Idea, you can then add a [Remote JVM Debug](https://www.jetbrains.com/help/idea/tutorial-remote-debug.html#create-run-configurations) run configuration.
+
+## The database services
+
+TODO.
