@@ -70,6 +70,12 @@ services:
       - BOOTSTRAP=kafka1:9093
       - COMMAND_CONFIG_FILE=/scripts/client.properties
 
+  prefilter:
+    image: domrad/prefilter
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+
   collector-zone:
     image: domrad/java-standalone
     command: [ "--col-zone", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
