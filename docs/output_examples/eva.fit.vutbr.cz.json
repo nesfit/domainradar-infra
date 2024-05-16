@@ -1,0 +1,1642 @@
+{
+	"dnsResult": {
+		"statusCode": 0,
+		"error": null,
+		"lastAttempt": 1714499291756,
+		"dnsData": {
+			"ttlValues": {
+				"AAAA": 14400,
+				"NS": -1,
+				"A": 14400,
+				"TXT": -1,
+				"MX": -1,
+				"CNAME": -1
+			},
+			"A": [
+				"147.229.176.14"
+			],
+			"AAAA": [
+				"2001:67c:1220:8b0:0:0:93e5:b00e"
+			],
+			"CNAME": null,
+			"MX": null,
+			"NS": null,
+			"TXT": null
+		},
+		"tlsData": {
+			"fromIp": {
+				"ip": "147.229.176.14",
+				"type": "A"
+			},
+			"protocol": "TLSv1.3",
+			"cipher": "TLS_AES_256_GCM_SHA384",
+			"certificates": [
+				{
+					"dn": "CN=eva.fit.vutbr.cz",
+					"derData": "MIIFkDCCBHigAwIBAgISBAzrRlYNsNviZtL59vEmmHDYMA0GCSqGSIb3DQEBCwUAMDIxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQDEwJSMzAeFw0yNDA0MjgxOTA3NDNaFw0yNDA3MjcxOTA3NDJaMBsxGTAXBgNVBAMTEGV2YS5maXQudnV0YnIuY3owggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC5CfNM8mGpwG8ami0dvSh0Zssfk1EFKQ/nJVG0WC05feHT9d2c8GI8XRdFT2vTSRomSuLl12OpGTTjxMZEXHIonngCC7sKTKG/WP5hb0aw/uvOQhF7VrzYpWbmzasu5EyhYu50DpY2Afd3RdTblrtK53cqlA/fi1uumeM3N7ZtMo2/blShW66s6nCXrjNj23VzkXCIJZk0wRFViVR1kjH+Zd3cf6FJeRgcnfnL5UGjMYAW61bJhkR5YJbs+LUuffNY+qF6JVK6KI8FJUMVEsAFS9GbOShIAXs17EjsE/zJnJQ47N1ZjNJh4l55awylVHXWmCAiNafLctZZcO4USeANAgMBAAGjggK1MIICsTAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFLuE9H702GtxZpipxig1+wcJejVmMB8GA1UdIwQYMBaAFBQusxe3WFbLrlAJQOYfr52LFMLGMFUGCCsGAQUFBwEBBEkwRzAhBggrBgEFBQcwAYYVaHR0cDovL3IzLm8ubGVuY3Iub3JnMCIGCCsGAQUFBzAChhZodHRwOi8vcjMuaS5sZW5jci5vcmcvMIG9BgNVHREEgbUwgbKCEGV2YS5maXQudnV0YnIuY3qCFGltYXAuc3R1ZC5maXQudnV0LmN6ghZpbWFwLnN0dWQuZml0LnZ1dGJyLmN6ghZwb3AzLnN0dWQuZml0LnZ1dGJyLmN6ghRzbXRwLnN0dWQuZml0LnZ1dC5jeoIWc210cC5zdHVkLmZpdC52dXRici5jeoITd3d3LnN0dWQuZml0LnZ1dC5jeoIVd3d3LnN0dWQuZml0LnZ1dGJyLmN6MBMGA1UdIAQMMAowCAYGZ4EMAQIBMIIBBAYKKwYBBAHWeQIEAgSB9QSB8gDwAHUASLDja9qmRzQP5WoC+p0w6xxSActW3SyB2bu/qznYhHMAAAGPJlIQLwAABAMARjBEAiAbJx0XbLci9S7EpW17AbJ3cxihXL+trGsAnxo6HmPI7gIgOrK7IjBk1Q/CiTmdBCeQmq7vH9PjIAtXVbyn3TF5dM4AdwDf4VbrqgWvtZwPhnGNqMAyTq5W2W6n9aVqAdHBO75SXAAAAY8mUhDoAAAEAwBIMEYCIQCgmbdLQzBg+50WmxiKvXaF6yyMEPqQrNjCLoO/lhDlpAIhAIt4vRhGrB+nPMJThMJa51xQqBr7c84CmWzS0T+35s0xMA0GCSqGSIb3DQEBCwUAA4IBAQAUUsq8Qbh1dqQDlCCy5zly6FoHX/Ncd1srq2+7jbCaFS++Vw1244qFdFjXOFjqnqFwuiMuT50Oxgq1lJ9QOvwdR9KOH9Xof2kaouKtZsPv/Qmj9of+G4TG1/0yiQGnVlhHyTW2SpswZuTBvQF/mCUpORyJVkjjoHhhYC2FamTW4oDCezhUGbIjyZYzDE4m4ppALdXt8rmdW/K4uBP2sTbIw9KrgAGfkU3C0FPZlYwcITlXt2JCP7tA9ShlcLPX4FRSdNl0GEEYeX05YuxNO9HlZh9OVPL29MLU/nh9EA2EodRv9rCPtfayvNuMP1rUQX8cM2TUJ6LMKJUIgPGfkS9h"
+				},
+				{
+					"dn": "CN=R3, O=Let's Encrypt, C=US",
+					"derData": "MIIFFjCCAv6gAwIBAgIRAJErCErPDBinU/bWLiWnX1owDQYJKoZIhvcNAQELBQAwTzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2VhcmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMjAwOTA0MDAwMDAwWhcNMjUwOTE1MTYwMDAwWjAyMQswCQYDVQQGEwJVUzEWMBQGA1UEChMNTGV0J3MgRW5jcnlwdDELMAkGA1UEAxMCUjMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC7AhUozPaglNMPEuyNVZLD+ILxmaZ6QoinXSaqtSu5xUyxr45r+XXIo9cPR5QUVTVXjJ6oojkZ9YI8QqlObvU7wy7bjcCwXPNZOOftz2nwWgsbvsCUJCWH+jdxsxPnHKzhm+/b5DtFUkWWqcFTzjTIUu61ru2P3mBw4qVUq7ZtDpelQDRrK9O8ZutmNHz6a4uPVymZ+DAXXbpyb/uBxa3Shlg9F8fnCbvxK/eG3MHacV3URuPMrSXBiLxgZ3Vms/EY96Jc5lP/Ooi2R6X/ExjqmAl3P51T+c8B5fWmcBcUr2Ok/5mzk53cU6cG/kiFHaFpriV1uxPMUgP17VGhi9sVAgMBAAGjggEIMIIBBDAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFBQusxe3WFbLrlAJQOYfr52LFMLGMB8GA1UdIwQYMBaAFHm0WeZ7tuXkAXOACIjIGlj26ZtuMDIGCCsGAQUFBwEBBCYwJDAiBggrBgEFBQcwAoYWaHR0cDovL3gxLmkubGVuY3Iub3JnLzAnBgNVHR8EIDAeMBygGqAYhhZodHRwOi8veDEuYy5sZW5jci5vcmcvMCIGA1UdIAQbMBkwCAYGZ4EMAQIBMA0GCysGAQQBgt8TAQEBMA0GCSqGSIb3DQEBCwUAA4ICAQCFyk5HPqP3hUSFvNVneLKYY611TR6WPTNlclQtgaDqw+34IL9fzLdwALduO/ZelN7kIJ+m74uyA+eitRY8kc607TkC53wlikfmZW4/RvTZ8M6UK+5UzhK8jCdLuMGYL6KvzXGRSgi3yLgjewQtCPkIVz6D2QQzCkcheAmCJ8MqyJu5zlzyZMjAvnnAT45tRAxekrsu94sQ4egdRCnbWSDtY7kh+BImlJNXoB1lBMEKIq4QDUOXoRgffuDghje1WrG9ML+Hbisq/yFOGwXD9RiX8F6sw6W4avAuvDszue5L3sz85K+EC4Y/wFVDNvZo4TYXao6Z0f+lQKc0t8DQYzk1OXVu8rp2yJMC6alLbBfODALZvYH7n7do1AZls4I9d1P4jnkDrQoxB3UqQ9hVl3LEKQ73xF1OyK5GhDDX8oVfGKF5u+decIsH4YaTw7mP3GFxJSqv3+0lUFJoi5Lc5da149p90IdshCExroL1+7mryIkXPeFM5TgO9r0rvZaBFOvV2z0gp35Z0+L4WPlbuEjN/lxPFin+HlUjr8gRsI3qfJOQFy/9rKIJR0Y/8Omwt/8oTWgy1mdeHmmjk7j1nYsvC9JSQ6ZvMldlTTKB3zhThV1+XWYp6rjd5JW1zbVWEkLNxE7GJThEUG3szgBVGP7pSWTUTsqXnLRbwHOoq7hHwg=="
+				}
+			]
+		},
+		"ips": [
+			{
+				"ip": "2001:67c:1220:8b0:0:0:93e5:b00e",
+				"type": "AAAA"
+			},
+			{
+				"ip": "147.229.176.14",
+				"type": "A"
+			}
+		],
+		"ipResults": {
+			"147.229.176.14": {
+				"rdap_ip": {
+					"statusCode": 0,
+					"error": null,
+					"lastAttempt": 1714499293063,
+					"collector": "rdap_ip",
+					"data": {
+						"handle": "147.229.0.0 - 147.229.254.255",
+						"startAddress": "147.229.0.0",
+						"endAddress": "147.229.254.255",
+						"ipVersion": "v4",
+						"name": "VUTBRNET",
+						"type": "ASSIGNED PA",
+						"country": "CZ",
+						"parentHandle": "147.229.0.0 - 147.229.255.255",
+						"cidr0_cidrs": [
+							{
+								"v4prefix": "147.229.0.0",
+								"length": 17
+							},
+							{
+								"v4prefix": "147.229.128.0",
+								"length": 18
+							},
+							{
+								"v4prefix": "147.229.192.0",
+								"length": 19
+							},
+							{
+								"v4prefix": "147.229.224.0",
+								"length": 20
+							},
+							{
+								"v4prefix": "147.229.240.0",
+								"length": 21
+							},
+							{
+								"v4prefix": "147.229.248.0",
+								"length": 22
+							},
+							{
+								"v4prefix": "147.229.252.0",
+								"length": 23
+							},
+							{
+								"v4prefix": "147.229.254.0",
+								"length": 24
+							}
+						],
+						"status": [
+							"active"
+						],
+						"entities": [
+							{
+								"handle": "CA6319-RIPE",
+								"vcardArray": [
+									"vcard",
+									[
+										[
+											"version",
+											{},
+											"text",
+											"4.0"
+										],
+										[
+											"fn",
+											{},
+											"text",
+											"Brno University of Technology - Backbone Admins"
+										],
+										[
+											"kind",
+											{},
+											"text",
+											"group"
+										],
+										[
+											"adr",
+											{
+												"label": "Brno University of Technology\nAntoninska 1\n601 90 Brno\nThe Czech Republic"
+											},
+											"text",
+											[
+												"",
+												"",
+												"",
+												"",
+												"",
+												"",
+												""
+											]
+										],
+										[
+											"tel",
+											{
+												"type": "voice"
+											},
+											"text",
+											"+420 541145453"
+										],
+										[
+											"tel",
+											{
+												"type": "voice"
+											},
+											"text",
+											"+420 723047787"
+										],
+										[
+											"email",
+											{
+												"type": "abuse"
+											},
+											"text",
+											"abuse@vutbr.cz"
+										]
+									]
+								],
+								"roles": [
+									"administrative",
+									"technical"
+								],
+								"links": [
+									{
+										"value": "https://rdap.db.ripe.net/ip/147.229.176.14",
+										"rel": "self",
+										"href": "https://rdap.db.ripe.net/entity/CA6319-RIPE"
+									},
+									{
+										"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+										"rel": "copyright",
+										"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+									}
+								],
+								"objectClassName": "entity"
+							},
+							{
+								"handle": "VUTBR-MNT",
+								"vcardArray": [
+									"vcard",
+									[
+										[
+											"version",
+											{},
+											"text",
+											"4.0"
+										],
+										[
+											"fn",
+											{},
+											"text",
+											"VUTBR-MNT"
+										],
+										[
+											"kind",
+											{},
+											"text",
+											"individual"
+										]
+									]
+								],
+								"roles": [
+									"registrant"
+								],
+								"links": [
+									{
+										"value": "https://rdap.db.ripe.net/ip/147.229.176.14",
+										"rel": "self",
+										"href": "https://rdap.db.ripe.net/entity/VUTBR-MNT"
+									},
+									{
+										"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+										"rel": "copyright",
+										"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+									}
+								],
+								"objectClassName": "entity"
+							},
+							{
+								"handle": "CA6319-RIPE",
+								"vcardArray": [
+									"vcard",
+									[
+										[
+											"version",
+											{},
+											"text",
+											"4.0"
+										],
+										[
+											"fn",
+											{},
+											"text",
+											"Brno University of Technology - Backbone Admins"
+										],
+										[
+											"kind",
+											{},
+											"text",
+											"group"
+										],
+										[
+											"adr",
+											{
+												"label": "Brno University of Technology\nAntoninska 1\n601 90 Brno\nThe Czech Republic"
+											},
+											"text",
+											[
+												"",
+												"",
+												"",
+												"",
+												"",
+												"",
+												""
+											]
+										],
+										[
+											"tel",
+											{
+												"type": "voice"
+											},
+											"text",
+											"+420 541145453"
+										],
+										[
+											"tel",
+											{
+												"type": "voice"
+											},
+											"text",
+											"+420 723047787"
+										],
+										[
+											"email",
+											{
+												"type": "abuse"
+											},
+											"text",
+											"abuse@vutbr.cz"
+										]
+									]
+								],
+								"roles": [
+									"abuse"
+								],
+								"entities": [
+									{
+										"handle": "VUT-BATCH-MNT",
+										"vcardArray": [
+											"vcard",
+											[
+												[
+													"version",
+													{},
+													"text",
+													"4.0"
+												],
+												[
+													"fn",
+													{},
+													"text",
+													"VUT-BATCH-MNT"
+												],
+												[
+													"kind",
+													{},
+													"text",
+													"individual"
+												]
+											]
+										],
+										"roles": [
+											"registrant"
+										],
+										"links": [
+											{
+												"value": "https://rdap.db.ripe.net/ip/147.229.176.14",
+												"rel": "self",
+												"href": "https://rdap.db.ripe.net/entity/VUT-BATCH-MNT"
+											},
+											{
+												"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+												"rel": "copyright",
+												"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+											}
+										],
+										"objectClassName": "entity"
+									},
+									{
+										"handle": "VUTBR-MNT",
+										"vcardArray": [
+											"vcard",
+											[
+												[
+													"version",
+													{},
+													"text",
+													"4.0"
+												],
+												[
+													"fn",
+													{},
+													"text",
+													"VUTBR-MNT"
+												],
+												[
+													"kind",
+													{},
+													"text",
+													"individual"
+												]
+											]
+										],
+										"roles": [
+											"registrant"
+										],
+										"links": [
+											{
+												"value": "https://rdap.db.ripe.net/ip/147.229.176.14",
+												"rel": "self",
+												"href": "https://rdap.db.ripe.net/entity/VUTBR-MNT"
+											},
+											{
+												"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+												"rel": "copyright",
+												"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+											}
+										],
+										"objectClassName": "entity"
+									}
+								],
+								"objectClassName": "entity"
+							}
+						],
+						"remarks": [
+							{
+								"description": [
+									"Brno University of Technology"
+								]
+							}
+						],
+						"links": [
+							{
+								"value": "https://rdap.db.ripe.net/ip/147.229.176.14",
+								"rel": "self",
+								"href": "https://rdap.db.ripe.net/ip/147.229.176.14"
+							},
+							{
+								"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+								"rel": "copyright",
+								"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+							}
+						],
+						"events": [
+							{
+								"eventAction": "registration",
+								"eventDate": "2014-11-19T08:23:45Z"
+							},
+							{
+								"eventAction": "last changed",
+								"eventDate": "2015-01-30T08:37:07Z"
+							}
+						],
+						"rdapConformance": [
+							"geofeed1",
+							"cidr0",
+							"rdap_level_0",
+							"nro_rdap_profile_0",
+							"redacted"
+						],
+						"notices": [
+							{
+								"title": "Filtered",
+								"description": [
+									"This output has been filtered."
+								]
+							},
+							{
+								"title": "Whois Inaccuracy Reporting",
+								"description": [
+									"If you see inaccuracies in the results, please visit:"
+								],
+								"links": [
+									{
+										"value": "https://rdap.db.ripe.net/ip/147.229.176.14",
+										"rel": "inaccuracy-report",
+										"href": "https://www.ripe.net/contact-form?topic=ripe_dbm&show_form=true",
+										"type": "text/html"
+									}
+								]
+							},
+							{
+								"title": "Source",
+								"description": [
+									"Objects returned came from source",
+									"RIPE"
+								]
+							},
+							{
+								"title": "Terms and Conditions",
+								"description": [
+									"This is the RIPE Database query service. The objects are in RDAP format."
+								],
+								"links": [
+									{
+										"value": "https://rdap.db.ripe.net/ip/147.229.176.14",
+										"rel": "terms-of-service",
+										"href": "http://www.ripe.net/db/support/db-terms-conditions.pdf",
+										"type": "application/pdf"
+									}
+								]
+							}
+						],
+						"port43": "whois.ripe.net",
+						"objectClassName": "ip network",
+						"redacted": [
+							{
+								"name": {
+									"description": "Personal e-mail information"
+								},
+								"reason": {
+									"description": "Personal data"
+								},
+								"prePath": "$.entities[?(@.handle=='CA6319-RIPE')].vcardArray[1][?(@[0]=='e-mail')]",
+								"method": "removal"
+							},
+							{
+								"name": {
+									"description": "Personal e-mail information"
+								},
+								"reason": {
+									"description": "Personal data"
+								},
+								"prePath": "$.entities[?(@.handle=='CA6319-RIPE')].vcardArray[1][?(@[0]=='e-mail')]",
+								"method": "removal"
+							}
+						]
+					}
+				},
+				"rtt": {
+					"statusCode": 0,
+					"error": null,
+					"lastAttempt": 1714499295952,
+					"collector": "rtt",
+					"data": {
+						"min": 17.871,
+						"avg": 20.197,
+						"max": 24.184,
+						"sent": 5,
+						"received": 5,
+						"jitter": 1.748,
+						"__faust": {
+							"ns": "common.models.RTTData"
+						}
+					}
+				},
+				"geo_asn": {
+					"statusCode": 0,
+					"error": null,
+					"lastAttempt": 1714499291993,
+					"collector": "geo_asn",
+					"data": {
+						"continentCode": "EU",
+						"countryCode": "CZ",
+						"region": null,
+						"regionCode": null,
+						"city": null,
+						"postalCode": null,
+						"latitude": 50.0853,
+						"longitude": 14.411,
+						"timezone": "Europe/Prague",
+						"registeredCountryGeoNameId": 3077311,
+						"representedCountryGeoNameId": null,
+						"asn": 197451,
+						"asnOrg": "Brno University of Technology",
+						"networkAddress": "/147.229.128.0",
+						"prefixLength": 18
+					}
+				},
+				"nerd": {
+					"statusCode": 0,
+					"error": null,
+					"lastAttempt": 1714499292078,
+					"collector": "nerd",
+					"data": {
+						"reputation": 0
+					}
+				}
+			},
+			"2001:67c:1220:8b0:0:0:93e5:b00e": {
+				"rdap_ip": {
+					"statusCode": 0,
+					"error": null,
+					"lastAttempt": 1714499292213,
+					"collector": "rdap_ip",
+					"data": {
+						"handle": "2001:67c:1220::/46",
+						"startAddress": "2001:67c:1220::",
+						"endAddress": "2001:67c:1223:ffff:ffff:ffff:ffff:ffff",
+						"ipVersion": "v6",
+						"name": "VUTBR-TCZ",
+						"type": "ASSIGNED PI",
+						"country": "CZ",
+						"parentHandle": "2001:600::/23",
+						"cidr0_cidrs": [
+							{
+								"v6prefix": "2001:67c:1220::",
+								"length": 46
+							}
+						],
+						"status": [
+							"active"
+						],
+						"entities": [
+							{
+								"handle": "CA6319-RIPE",
+								"vcardArray": [
+									"vcard",
+									[
+										[
+											"version",
+											{},
+											"text",
+											"4.0"
+										],
+										[
+											"fn",
+											{},
+											"text",
+											"Brno University of Technology - Backbone Admins"
+										],
+										[
+											"kind",
+											{},
+											"text",
+											"group"
+										],
+										[
+											"adr",
+											{
+												"label": "Brno University of Technology\nAntoninska 1\n601 90 Brno\nThe Czech Republic"
+											},
+											"text",
+											[
+												"",
+												"",
+												"",
+												"",
+												"",
+												"",
+												""
+											]
+										],
+										[
+											"tel",
+											{
+												"type": "voice"
+											},
+											"text",
+											"+420 541145453"
+										],
+										[
+											"tel",
+											{
+												"type": "voice"
+											},
+											"text",
+											"+420 723047787"
+										],
+										[
+											"email",
+											{
+												"type": "abuse"
+											},
+											"text",
+											"abuse@vutbr.cz"
+										]
+									]
+								],
+								"roles": [
+									"administrative",
+									"technical"
+								],
+								"links": [
+									{
+										"value": "https://rdap.db.ripe.net/ip/2001:67c:1220:8b0::93e5:b00e",
+										"rel": "self",
+										"href": "https://rdap.db.ripe.net/entity/CA6319-RIPE"
+									},
+									{
+										"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+										"rel": "copyright",
+										"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+									}
+								],
+								"objectClassName": "entity"
+							},
+							{
+								"handle": "ORG-BUOT1-RIPE",
+								"vcardArray": [
+									"vcard",
+									[
+										[
+											"version",
+											{},
+											"text",
+											"4.0"
+										],
+										[
+											"fn",
+											{},
+											"text",
+											"Brno University of Technology"
+										],
+										[
+											"kind",
+											{},
+											"text",
+											"org"
+										],
+										[
+											"adr",
+											{
+												"label": "Antoninska 548/1\n60190\nBrno\nCZECH REPUBLIC"
+											},
+											"text",
+											[
+												"",
+												"",
+												"",
+												"",
+												"",
+												"",
+												""
+											]
+										],
+										[
+											"tel",
+											{
+												"type": "voice"
+											},
+											"text",
+											"+420541145453"
+										]
+									]
+								],
+								"roles": [
+									"registrant"
+								],
+								"links": [
+									{
+										"value": "https://rdap.db.ripe.net/ip/2001:67c:1220:8b0::93e5:b00e",
+										"rel": "self",
+										"href": "https://rdap.db.ripe.net/entity/ORG-BUOT1-RIPE"
+									},
+									{
+										"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+										"rel": "copyright",
+										"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+									}
+								],
+								"objectClassName": "entity"
+							},
+							{
+								"handle": "RIPE-NCC-END-MNT",
+								"vcardArray": [
+									"vcard",
+									[
+										[
+											"version",
+											{},
+											"text",
+											"4.0"
+										],
+										[
+											"fn",
+											{},
+											"text",
+											"RIPE-NCC-END-MNT"
+										],
+										[
+											"kind",
+											{},
+											"text",
+											"individual"
+										],
+										[
+											"org",
+											{},
+											"text",
+											"ORG-NCC1-RIPE"
+										]
+									]
+								],
+								"roles": [
+									"registrant"
+								],
+								"links": [
+									{
+										"value": "https://rdap.db.ripe.net/ip/2001:67c:1220:8b0::93e5:b00e",
+										"rel": "self",
+										"href": "https://rdap.db.ripe.net/entity/RIPE-NCC-END-MNT"
+									},
+									{
+										"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+										"rel": "copyright",
+										"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+									}
+								],
+								"objectClassName": "entity"
+							},
+							{
+								"handle": "VUTBR-MNT",
+								"vcardArray": [
+									"vcard",
+									[
+										[
+											"version",
+											{},
+											"text",
+											"4.0"
+										],
+										[
+											"fn",
+											{},
+											"text",
+											"VUTBR-MNT"
+										],
+										[
+											"kind",
+											{},
+											"text",
+											"individual"
+										]
+									]
+								],
+								"roles": [
+									"registrant"
+								],
+								"links": [
+									{
+										"value": "https://rdap.db.ripe.net/ip/2001:67c:1220:8b0::93e5:b00e",
+										"rel": "self",
+										"href": "https://rdap.db.ripe.net/entity/VUTBR-MNT"
+									},
+									{
+										"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+										"rel": "copyright",
+										"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+									}
+								],
+								"objectClassName": "entity"
+							},
+							{
+								"handle": "CA6319-RIPE",
+								"vcardArray": [
+									"vcard",
+									[
+										[
+											"version",
+											{},
+											"text",
+											"4.0"
+										],
+										[
+											"fn",
+											{},
+											"text",
+											"Brno University of Technology - Backbone Admins"
+										],
+										[
+											"kind",
+											{},
+											"text",
+											"group"
+										],
+										[
+											"adr",
+											{
+												"label": "Brno University of Technology\nAntoninska 1\n601 90 Brno\nThe Czech Republic"
+											},
+											"text",
+											[
+												"",
+												"",
+												"",
+												"",
+												"",
+												"",
+												""
+											]
+										],
+										[
+											"tel",
+											{
+												"type": "voice"
+											},
+											"text",
+											"+420 541145453"
+										],
+										[
+											"tel",
+											{
+												"type": "voice"
+											},
+											"text",
+											"+420 723047787"
+										],
+										[
+											"email",
+											{
+												"type": "abuse"
+											},
+											"text",
+											"abuse@vutbr.cz"
+										]
+									]
+								],
+								"roles": [
+									"abuse"
+								],
+								"entities": [
+									{
+										"handle": "VUT-BATCH-MNT",
+										"vcardArray": [
+											"vcard",
+											[
+												[
+													"version",
+													{},
+													"text",
+													"4.0"
+												],
+												[
+													"fn",
+													{},
+													"text",
+													"VUT-BATCH-MNT"
+												],
+												[
+													"kind",
+													{},
+													"text",
+													"individual"
+												]
+											]
+										],
+										"roles": [
+											"registrant"
+										],
+										"links": [
+											{
+												"value": "https://rdap.db.ripe.net/ip/2001:67c:1220:8b0::93e5:b00e",
+												"rel": "self",
+												"href": "https://rdap.db.ripe.net/entity/VUT-BATCH-MNT"
+											},
+											{
+												"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+												"rel": "copyright",
+												"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+											}
+										],
+										"objectClassName": "entity"
+									},
+									{
+										"handle": "VUTBR-MNT",
+										"vcardArray": [
+											"vcard",
+											[
+												[
+													"version",
+													{},
+													"text",
+													"4.0"
+												],
+												[
+													"fn",
+													{},
+													"text",
+													"VUTBR-MNT"
+												],
+												[
+													"kind",
+													{},
+													"text",
+													"individual"
+												]
+											]
+										],
+										"roles": [
+											"registrant"
+										],
+										"links": [
+											{
+												"value": "https://rdap.db.ripe.net/ip/2001:67c:1220:8b0::93e5:b00e",
+												"rel": "self",
+												"href": "https://rdap.db.ripe.net/entity/VUTBR-MNT"
+											},
+											{
+												"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+												"rel": "copyright",
+												"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+											}
+										],
+										"objectClassName": "entity"
+									}
+								],
+								"objectClassName": "entity"
+							}
+						],
+						"links": [
+							{
+								"value": "https://rdap.db.ripe.net/ip/2001:67c:1220:8b0::93e5:b00e",
+								"rel": "self",
+								"href": "https://rdap.db.ripe.net/ip/2001:67c:1220:8b0::93e5:b00e"
+							},
+							{
+								"value": "http://www.ripe.net/data-tools/support/documentation/terms",
+								"rel": "copyright",
+								"href": "http://www.ripe.net/data-tools/support/documentation/terms"
+							}
+						],
+						"events": [
+							{
+								"eventAction": "registration",
+								"eventDate": "2010-11-15T11:04:30Z"
+							},
+							{
+								"eventAction": "last changed",
+								"eventDate": "2023-01-12T16:35:27Z"
+							}
+						],
+						"rdapConformance": [
+							"geofeed1",
+							"cidr0",
+							"rdap_level_0",
+							"nro_rdap_profile_0",
+							"redacted"
+						],
+						"notices": [
+							{
+								"title": "Filtered",
+								"description": [
+									"This output has been filtered."
+								]
+							},
+							{
+								"title": "Whois Inaccuracy Reporting",
+								"description": [
+									"If you see inaccuracies in the results, please visit:"
+								],
+								"links": [
+									{
+										"value": "https://rdap.db.ripe.net/ip/2001:67c:1220:8b0::93e5:b00e",
+										"rel": "inaccuracy-report",
+										"href": "https://www.ripe.net/contact-form?topic=ripe_dbm&show_form=true",
+										"type": "text/html"
+									}
+								]
+							},
+							{
+								"title": "Source",
+								"description": [
+									"Objects returned came from source",
+									"RIPE"
+								]
+							},
+							{
+								"title": "Terms and Conditions",
+								"description": [
+									"This is the RIPE Database query service. The objects are in RDAP format."
+								],
+								"links": [
+									{
+										"value": "https://rdap.db.ripe.net/ip/2001:67c:1220:8b0::93e5:b00e",
+										"rel": "terms-of-service",
+										"href": "http://www.ripe.net/db/support/db-terms-conditions.pdf",
+										"type": "application/pdf"
+									}
+								]
+							}
+						],
+						"port43": "whois.ripe.net",
+						"objectClassName": "ip network",
+						"redacted": [
+							{
+								"name": {
+									"description": "Personal e-mail information"
+								},
+								"reason": {
+									"description": "Personal data"
+								},
+								"prePath": "$.entities[?(@.handle=='CA6319-RIPE')].vcardArray[1][?(@[0]=='e-mail')]",
+								"method": "removal"
+							},
+							{
+								"name": {
+									"description": "Personal e-mail information"
+								},
+								"reason": {
+									"description": "Personal data"
+								},
+								"prePath": "$.entities[?(@.handle=='ORG-BUOT1-RIPE')].vcardArray[1][?(@[0]=='e-mail')]",
+								"method": "removal"
+							},
+							{
+								"name": {
+									"description": "Personal e-mail information"
+								},
+								"reason": {
+									"description": "Personal data"
+								},
+								"prePath": "$.entities[?(@.handle=='CA6319-RIPE')].vcardArray[1][?(@[0]=='e-mail')]",
+								"method": "removal"
+							}
+						]
+					}
+				},
+				"rtt": {
+					"statusCode": 0,
+					"error": null,
+					"lastAttempt": 1714499305858,
+					"collector": "rtt",
+					"data": {
+						"min": 0,
+						"avg": 0,
+						"max": 0,
+						"sent": 5,
+						"received": 0,
+						"jitter": 0,
+						"__faust": {
+							"ns": "common.models.RTTData"
+						}
+					}
+				},
+				"geo_asn": {
+					"statusCode": 0,
+					"error": null,
+					"lastAttempt": 1714499291938,
+					"collector": "geo_asn",
+					"data": {
+						"continentCode": "EU",
+						"countryCode": "CZ",
+						"region": "52",
+						"regionCode": "Kralovehradecky kraj",
+						"city": "Brdo",
+						"postalCode": "612 00",
+						"latitude": 50.284,
+						"longitude": 15.7051,
+						"timezone": "Europe/Prague",
+						"registeredCountryGeoNameId": 3077311,
+						"representedCountryGeoNameId": null,
+						"asn": 197451,
+						"asnOrg": "Brno University of Technology",
+						"networkAddress": "/2001:67c:1220:0:0:0:0:0",
+						"prefixLength": 47
+					}
+				},
+				"nerd": {
+					"statusCode": 0,
+					"error": null,
+					"lastAttempt": 1714499292078,
+					"collector": "nerd",
+					"data": {
+						"reputation": 0
+					}
+				}
+			}
+		}
+	},
+	"rdapDomainResult": {
+		"statusCode": 0,
+		"error": null,
+		"lastAttempt": 1714499287317,
+		"rdapData": {
+			"objectClassName": "domain",
+			"rdapConformance": [
+				"rdap_level_0",
+				"fred_version_0"
+			],
+			"handle": "vutbr.cz",
+			"ldhName": "vutbr.cz",
+			"links": [
+				{
+					"value": "https://rdap.nic.cz/domain/vutbr.cz",
+					"rel": "self",
+					"href": "https://rdap.nic.cz/domain/vutbr.cz",
+					"type": "application/rdap+json"
+				}
+			],
+			"port43": "whois.nic.cz",
+			"events": [
+				{
+					"eventAction": "registration",
+					"eventDate": "1994-05-19T00:00:00+00:00"
+				},
+				{
+					"eventAction": "expiration",
+					"eventDate": "2024-10-11T22:00:00+00:00"
+				},
+				{
+					"eventAction": "last changed",
+					"eventDate": "2022-11-18T09:03:07+00:00"
+				},
+				{
+					"eventAction": "transfer",
+					"eventDate": "2019-11-12T09:15:41+00:00"
+				}
+			],
+			"status": [
+				"active"
+			],
+			"nameservers": [
+				{
+					"objectClassName": "nameserver",
+					"handle": "pipit.cis.vutbr.cz",
+					"ldhName": "pipit.cis.vutbr.cz",
+					"links": [
+						{
+							"value": "https://rdap.nic.cz/nameserver/pipit.cis.vutbr.cz",
+							"rel": "self",
+							"href": "https://rdap.nic.cz/nameserver/pipit.cis.vutbr.cz",
+							"type": "application/rdap+json"
+						}
+					],
+					"ipAddresses": {
+						"v4": [
+							"77.93.219.110"
+						],
+						"v6": [
+							"2a01:430:120::4d5d:db6e"
+						]
+					}
+				},
+				{
+					"objectClassName": "nameserver",
+					"handle": "rhino.cis.vutbr.cz",
+					"ldhName": "rhino.cis.vutbr.cz",
+					"links": [
+						{
+							"value": "https://rdap.nic.cz/nameserver/rhino.cis.vutbr.cz",
+							"rel": "self",
+							"href": "https://rdap.nic.cz/nameserver/rhino.cis.vutbr.cz",
+							"type": "application/rdap+json"
+						}
+					],
+					"ipAddresses": {
+						"v4": [
+							"147.229.3.10"
+						],
+						"v6": [
+							"2001:67c:1220:e000::93e5:30a"
+						]
+					}
+				}
+			],
+			"fred_nsset": {
+				"objectClassName": "fred_nsset",
+				"handle": "NSS:VUTBR:1",
+				"links": [
+					{
+						"value": "https://rdap.nic.cz/fred_nsset/NSS:VUTBR:1",
+						"rel": "self",
+						"href": "https://rdap.nic.cz/fred_nsset/NSS:VUTBR:1",
+						"type": "application/rdap+json"
+					}
+				],
+				"nameservers": [
+					{
+						"objectClassName": "nameserver",
+						"handle": "pipit.cis.vutbr.cz",
+						"ldhName": "pipit.cis.vutbr.cz",
+						"links": [
+							{
+								"value": "https://rdap.nic.cz/nameserver/pipit.cis.vutbr.cz",
+								"rel": "self",
+								"href": "https://rdap.nic.cz/nameserver/pipit.cis.vutbr.cz",
+								"type": "application/rdap+json"
+							}
+						],
+						"ipAddresses": {
+							"v4": [
+								"77.93.219.110"
+							],
+							"v6": [
+								"2a01:430:120::4d5d:db6e"
+							]
+						}
+					},
+					{
+						"objectClassName": "nameserver",
+						"handle": "rhino.cis.vutbr.cz",
+						"ldhName": "rhino.cis.vutbr.cz",
+						"links": [
+							{
+								"value": "https://rdap.nic.cz/nameserver/rhino.cis.vutbr.cz",
+								"rel": "self",
+								"href": "https://rdap.nic.cz/nameserver/rhino.cis.vutbr.cz",
+								"type": "application/rdap+json"
+							}
+						],
+						"ipAddresses": {
+							"v4": [
+								"147.229.3.10"
+							],
+							"v6": [
+								"2001:67c:1220:e000::93e5:30a"
+							]
+						}
+					}
+				]
+			},
+			"secureDNS": {
+				"zoneSigned": true,
+				"delegationSigned": true,
+				"keyData": [
+					{
+						"flags": 257,
+						"protocol": 3,
+						"algorithm": 13,
+						"publicKey": "kYcUCSP5hb8Bau6TsNdq/1cseO0gmKtj3gBZuNQEIcmMSC5k4VMFPZPcI4S3fuIGyrfujdllVBYStSWJivkcXQ=="
+					}
+				],
+				"maxSigLife": 1209600
+			},
+			"fred_keyset": {
+				"objectClassName": "fred_keyset",
+				"handle": "KEYSET-VUTBR-CZ-2",
+				"links": [
+					{
+						"value": "https://rdap.nic.cz/fred_keyset/KEYSET-VUTBR-CZ-2",
+						"rel": "self",
+						"href": "https://rdap.nic.cz/fred_keyset/KEYSET-VUTBR-CZ-2",
+						"type": "application/rdap+json"
+					}
+				],
+				"dns_keys": [
+					{
+						"flags": 257,
+						"protocol": 3,
+						"algorithm": 13,
+						"publicKey": "kYcUCSP5hb8Bau6TsNdq/1cseO0gmKtj3gBZuNQEIcmMSC5k4VMFPZPcI4S3fuIGyrfujdllVBYStSWJivkcXQ=="
+					}
+				]
+			},
+			"notices": [
+				{
+					"title": "Disclaimer",
+					"description": [
+						"(c) 2023 CZ.NIC, z.s.p.o.",
+						"Intended use of supplied data and information",
+						"Data contained in the domain name register, as well as information supplied through public information services of CZ.NIC association, are appointed only for purposes connected with Internet network administration and operation, or for the purpose of legal or other similar proceedings, in process as regards a matter connected particularly with holding and using a concrete domain name."
+					]
+				}
+			]
+		},
+		"entities": [
+			{
+				"objectClassName": "entity",
+				"rdapConformance": [
+					"rdap_level_0"
+				],
+				"handle": "SB:VUTBR-CZ",
+				"vcardArray": [
+					"vcard",
+					[
+						[
+							"version",
+							{},
+							"text",
+							"4.0"
+						],
+						[
+							"fn",
+							{},
+							"text",
+							"Vysoke uceni technicke v Brne"
+						],
+						[
+							"org",
+							{},
+							"text",
+							"Vysoke uceni technicke v Brne"
+						],
+						[
+							"adr",
+							{
+								"type": ""
+							},
+							"text",
+							[
+								"",
+								"Antoninska 548/1",
+								"",
+								"",
+								"Brno",
+								"",
+								"601 90",
+								"CZ"
+							]
+						]
+					]
+				],
+				"links": [
+					{
+						"value": "https://rdap.nic.cz/entity/SB:VUTBR-CZ",
+						"rel": "self",
+						"href": "https://rdap.nic.cz/entity/SB:VUTBR-CZ",
+						"type": "application/rdap+json"
+					}
+				],
+				"events": [
+					{
+						"eventAction": "registration",
+						"eventDate": "2001-08-10T20:13:00+00:00",
+						"eventActor": "REG-CZNIC"
+					},
+					{
+						"eventAction": "last changed",
+						"eventDate": "2020-03-11T10:09:04+00:00"
+					},
+					{
+						"eventAction": "transfer",
+						"eventDate": "2019-11-12T09:15:41+00:00"
+					}
+				],
+				"entities": [
+					{
+						"objectClassName": "entity",
+						"handle": "REG-INTERNET-CZ",
+						"roles": [
+							"registrar"
+						]
+					}
+				],
+				"status": [
+					"associated"
+				],
+				"port43": "whois.nic.cz",
+				"notices": [
+					{
+						"title": "Disclaimer",
+						"description": [
+							"(c) 2023 CZ.NIC, z.s.p.o.",
+							"Intended use of supplied data and information",
+							"Data contained in the domain name register, as well as information supplied through public information services of CZ.NIC association, are appointed only for purposes connected with Internet network administration and operation, or for the purpose of legal or other similar proceedings, in process as regards a matter connected particularly with holding and using a concrete domain name."
+						]
+					}
+				],
+				"roles": [
+					"registrant"
+				]
+			},
+			{
+				"objectClassName": "entity",
+				"handle": "REG-INTERNET-CZ",
+				"roles": [
+					"registrar"
+				]
+			},
+			{
+				"objectClassName": "entity",
+				"rdapConformance": [
+					"rdap_level_0"
+				],
+				"handle": "CID:IHAZMUK",
+				"vcardArray": [
+					"vcard",
+					[
+						[
+							"version",
+							{},
+							"text",
+							"4.0"
+						],
+						[
+							"fn",
+							{},
+							"text",
+							"Ivo Hažmuk"
+						],
+						[
+							"org",
+							{},
+							"text",
+							"Vysoké učení technické v Brně"
+						],
+						[
+							"adr",
+							{
+								"type": ""
+							},
+							"text",
+							[
+								"",
+								"Antonínská 548/1",
+								"",
+								"",
+								"Brno",
+								"Jihomoravský kraj",
+								"601 90",
+								"CZ"
+							]
+						]
+					]
+				],
+				"links": [
+					{
+						"value": "https://rdap.nic.cz/entity/CID:IHAZMUK",
+						"rel": "self",
+						"href": "https://rdap.nic.cz/entity/CID:IHAZMUK",
+						"type": "application/rdap+json"
+					}
+				],
+				"events": [
+					{
+						"eventAction": "registration",
+						"eventDate": "2008-10-06T15:30:01+00:00",
+						"eventActor": "REG-GENREG"
+					},
+					{
+						"eventAction": "last changed",
+						"eventDate": "2019-08-05T09:24:03+00:00"
+					},
+					{
+						"eventAction": "transfer",
+						"eventDate": "2019-11-12T09:15:41+00:00"
+					}
+				],
+				"entities": [
+					{
+						"objectClassName": "entity",
+						"handle": "REG-INTERNET-CZ",
+						"roles": [
+							"registrar"
+						]
+					}
+				],
+				"status": [
+					"associated"
+				],
+				"port43": "whois.nic.cz",
+				"notices": [
+					{
+						"title": "Disclaimer",
+						"description": [
+							"(c) 2023 CZ.NIC, z.s.p.o.",
+							"Intended use of supplied data and information",
+							"Data contained in the domain name register, as well as information supplied through public information services of CZ.NIC association, are appointed only for purposes connected with Internet network administration and operation, or for the purpose of legal or other similar proceedings, in process as regards a matter connected particularly with holding and using a concrete domain name."
+						]
+					}
+				],
+				"roles": [
+					"administrative"
+				]
+			},
+			{
+				"objectClassName": "entity",
+				"rdapConformance": [
+					"rdap_level_0"
+				],
+				"handle": "VUTBR-TPODER",
+				"vcardArray": [
+					"vcard",
+					[
+						[
+							"version",
+							{},
+							"text",
+							"4.0"
+						],
+						[
+							"fn",
+							{},
+							"text",
+							"Tomáš Podermański"
+						],
+						[
+							"org",
+							{},
+							"text",
+							"Vysoké učení technické v Brně"
+						],
+						[
+							"adr",
+							{
+								"type": ""
+							},
+							"text",
+							[
+								"",
+								"Antonínská 548/1",
+								"",
+								"",
+								"Brno",
+								"Jihomoravský kraj",
+								"601 90",
+								"CZ"
+							]
+						]
+					]
+				],
+				"links": [
+					{
+						"value": "https://rdap.nic.cz/entity/VUTBR-TPODER",
+						"rel": "self",
+						"href": "https://rdap.nic.cz/entity/VUTBR-TPODER",
+						"type": "application/rdap+json"
+					}
+				],
+				"events": [
+					{
+						"eventAction": "registration",
+						"eventDate": "2019-02-05T09:32:19+00:00",
+						"eventActor": "REG-GENREG"
+					},
+					{
+						"eventAction": "transfer",
+						"eventDate": "2019-11-12T09:15:41+00:00"
+					}
+				],
+				"entities": [
+					{
+						"objectClassName": "entity",
+						"handle": "REG-INTERNET-CZ",
+						"roles": [
+							"registrar"
+						]
+					}
+				],
+				"status": [
+					"associated"
+				],
+				"port43": "whois.nic.cz",
+				"notices": [
+					{
+						"title": "Disclaimer",
+						"description": [
+							"(c) 2023 CZ.NIC, z.s.p.o.",
+							"Intended use of supplied data and information",
+							"Data contained in the domain name register, as well as information supplied through public information services of CZ.NIC association, are appointed only for purposes connected with Internet network administration and operation, or for the purpose of legal or other similar proceedings, in process as regards a matter connected particularly with holding and using a concrete domain name."
+						]
+					}
+				],
+				"roles": [
+					"administrative"
+				]
+			}
+		],
+		"forSourceName": false,
+		"whoisStatusCode": 81,
+		"whoisError": null,
+		"whoisRaw": null,
+		"whoisParsed": null
+	},
+	"zone": {
+		"zone": "fit.vutbr.cz",
+		"soa": {
+			"primaryNs": "guta.fit.vutbr.cz",
+			"respMailboxDname": "michal.fit.vut.cz",
+			"serial": "202404251",
+			"refresh": 10800,
+			"retry": 3600,
+			"expire": 691200,
+			"minTTL": 86400
+		},
+		"publicSuffix": "cz",
+		"registrySuffix": "cz",
+		"primaryNameserverIps": [
+			"147.229.9.11",
+			"2001:67c:1220:809:0:0:93e5:90b"
+		],
+		"secondaryNameservers": [
+			"gate.feec.vutbr.cz",
+			"kazi.fit.vutbr.cz",
+			"rhino.cis.vutbr.cz"
+		],
+		"secondaryNameserverIps": [
+			"2001:67c:1220:9847:0:0:93e5:470a",
+			"147.229.71.10",
+			"147.229.8.12",
+			"147.229.3.10",
+			"2001:67c:1220:e000:0:0:93e5:30a",
+			"2001:67c:1220:808:0:0:93e5:80c"
+		]
+	}
+}

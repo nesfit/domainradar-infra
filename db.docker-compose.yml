@@ -1,0 +1,81 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    secrets:
+      - postgres_master_password
+      - postgres_prefilter_password
+      - postgres_ingestion_password
+      - postgres_connect_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./db/postgres/init/:/docker-entrypoint-initdb.d/
+      - ./db/postgres/postgres.conf:/etc/postgresql/postgresql.conf
+    env_file:
+      - ./db/postgres/postgres.env
+    ports:
+      - "31010:5432"
+    networks:
+      db-network:
+        ipv4_address: 192.168.45.130
+        aliases: [ "postgres" ]
+
+  mongo:
+    image: mongo:7
+    command: --config /etc/mongod.conf
+    restart: always
+    secrets:
+      - mongo_master_password
+      - mongo_ui_password
+      - mongo_connect_password
+    volumes:
+      - mongo-data:/data/db
+      - ./db/mongo/init/:/docker-entrypoint-initdb.d/
+      - ./db/mongo/mongod.conf.yml:/etc/mongod.conf
+    env_file:
+      - ./db/mongo/mongo.env
+    ports:
+      - "31011:27017"
+    networks:
+      db-network:
+        ipv4_address: 192.168.45.140
+        aliases: [ "mongo" ]
+
+  adminer:
+    build:
+      context: ./dockerfiles
+      dockerfile: adminer-mongo.Dockerfile
+    ports:
+      - "31001:8080"
+    networks:
+      - db-network
+
+volumes:
+  postgres-data:
+  mongo-data:
+
+networks:
+  db-network:
+    name: domainradar-db-network
+    driver: bridge
+    enable_ipv6: false
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.45.128/25
+
+secrets:
+  postgres_master_password:
+    file: ./db/postgres/master.secret
+  postgres_prefilter_password:
+    file: ./db/postgres/prefilter.secret
+  postgres_ingestion_password:
+    file: ./db/postgres/ingestion.secret
+  postgres_connect_password:
+    file: ./db/postgres/connect.secret
+  mongo_master_password:
+    file: ./db/mongo/master.secret
+  mongo_ui_password:
+    file: ./db/mongo/ui.secret
+  mongo_connect_password:
+    file: ./db/mongo/connect.secret

@@ -1,0 +1,4 @@
+secrets/
+geoip_data/*.mmdb
+connect_plugins/*.zip
+**/image_build/
