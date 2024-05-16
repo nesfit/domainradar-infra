@@ -47,7 +47,7 @@ keytool -keystore kafka.truststore.jks -alias CARoot -import -file ca/ca-cert \
 for ((i=1; i <= NUM_BROKERS; i++)); do
     echo "----------------------------"
     echo "Processing broker kafka$i..."
-    
+
     keytool -keystore kafka$i.keystore.jks -alias kafka$i -validity $BROKER_KEY_VALIDITY_DAYS \
         -genkey -keyalg RSA \
         -storepass "${BROKER_PASSWORDS[$i-1]}" -keypass "${BROKER_PASSWORDS[$i-1]}" \
@@ -83,7 +83,7 @@ for ((i=1; i <= NUM_CLIENTS; i++)); do
         -dname "CN=client$i, OU=KafkaClients, O=DomainRadar, L=Brno, C=CZ"
 
     keytool -keystore "client$i.keystore.jks" -alias "client$i" -certreq -file "client$i.csr" -storepass "$CLIENT_PASSWORD" -keypass "$CLIENT_PASSWORD"
-    
+
     cd "$CA_KEYSTORE" || exit 1
     openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
         -days "$CLIENT_CERT_VALIDITY_DAYS" -out "../client$i-cert.pem" -infiles "../client$i.csr"
@@ -102,5 +102,13 @@ for ((i=1; i <= NUM_CLIENTS; i++)); do
     mkdir -p "secrets_client$i"
     mv client$i* "secrets_client$i/"
 done
+
+OWNER="$(id -u):$(id -g)"
+echo "Changing permissions (UID:GID = $OWNER, 755/644 for all dirs/files, 600 for CA files)."
+find . -type d -exec chmod 755 {} \;
+find . -type f -exec chmod 644 {} \;
+chmod 600 ca/*
+chmod 700 ca
+chown -R "$OWNER" .
 
 echo "SSL setup for Kafka is complete."
