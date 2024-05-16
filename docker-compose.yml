@@ -55,8 +55,8 @@ services:
 
   initializer:
     build:
-      context: ..  # The root of the domainradar repo
-      dockerfile: ./pipeline-all-in-one/dockerfiles/initializer.Dockerfile
+      context: .  # The root of the domainradar repo
+      dockerfile: ./dockerfiles/initializer.Dockerfile
     depends_on:
       - kafka1
     secrets:
@@ -70,11 +70,11 @@ services:
       - BOOTSTRAP=kafka1:9093
       - COMMAND_CONFIG_FILE=/scripts/client.properties
 
-  prefilter:
-    image: domrad/prefilter
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
+  # prefilter:
+  #   image: domrad/prefilter
+  #   depends_on:
+  #     initializer:
+  #       condition: service_completed_successfully
 
   collector-zone:
     image: domrad/java-standalone
