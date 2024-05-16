@@ -2,7 +2,7 @@
 
 The main pipeline consists of several components that mostly accept a request from a topic, do a thing (e.g. collect some data) and publish the result to another topic (or to multiple topics). The picture below shows an overview diagram of the pipeline.
 
-<div class="text-center">
+<div>
     <img src="img/kafka-pipeline.svg" alt="Kafka pipeline diagram" width="500"/>
     <p>
         KS = Java / Kafka Streams; PC = Java / Parallel Consumer; F = Python / Faust.<br>DN = Domain Name; AS = Autonomous System; RTT = Round-Trip Time (ping).
@@ -11,11 +11,13 @@ The main pipeline consists of several components that mostly accept a request fr
 
 The green components collect data for a domain name, the blue components collect data for an IP address (though they are keyed with a DN/IP pair). The purple components perform a *gather* operation, merging together all the different results related to a domain name. The thin cylinders represent Kafka topics.
 
+All the results in the intermediary *processed\_\** topics are exported (with varying granularity) to the PostgreSQL and MongoDB databases through Kafka Connect. See [this page](./kafka_connect.md) for more information.
+
 ## Models
 
-In this document, the data structures are described using a syntax similar to Python dataclasses. However, in the actual pipeline, they are serialized as JSON (and this is subject to change). The serialized values **must** contain all the specified fields. If `| None` is not present, the field **must** have a non-null value.
+In this document, the data structures are described using a syntax similar to Python dataclasses. However, in the actual pipeline, they are serialized as JSON (this will later be changed to a binary format with pre-defined schemas, probably Avro). The serialized values **must** contain all the specified fields. If `| None` is not present, the field **must** have a non-null value.
 
-The base model for all events stored in the *processed_\** topics is `Result`. Every component adds its own specific fields carrying the actual result data to this base structure.
+The base model for all events stored in the *processed\_\** topics is `Result`. Every component adds its own specific fields carrying the actual result data to this base structure.
 
 ```python
 class Result:
@@ -24,9 +26,9 @@ class Result:
     lastAttempt: int64
 ```
 
-The status codes with descriptions can be found [here](https://github.com/nesfit/domainradar-colext/blob/main/java_pipeline/src/main/java/cz/vut/fit/domainradar/models/ResultCodes.java). The value of 0 means success.\
-The error field may contain a human-readable error message if the status code is not 0.\
-The last attempt field contains a UNIX timestamp of when the operation was _finished_.
+The status codes with descriptions can be found [here](https://github.com/nesfit/domainradar-colext/blob/main/java_pipeline/common/src/main/java/cz/vut/fit/domainradar/models/ResultCodes.java). The value of 0 means success.\
+The error field *may* contain a human-readable error message if the status code is not 0.\
+The last attempt field contains a UNIX timestamp (in milliseconds) of when the operation was *finished*.
 
 The base model for all IP collector results is `CommonIPResult of TData`.
 
@@ -47,17 +49,19 @@ These results carry a string identifier of the collector that created them. The 
     - *processed_zone*: zone data
         - Key: string – DN
         - Value: `ZoneResult`
-    - *to_process_dns*: request for the [DNS collector](#dnstls-collector)
+    - *to_process_dns*: request for the [DNS collector](#dns--tls-collector)
     - *to_process_RDAP_DN*: request for the [RDAP-DN collector](#rdap-dn-collector)
 - **TODO: Errors**
 
 ```python
 class ZoneProcessRequest:
-    toCollect: list[str] | None
-    typesToProcessIPsFrom: list[str] | None
+    collectDNS: bool
+    collectRDAP: bool
+    dnsTypesToCollect: list[str] | None
+    dnsTypesToProcessIPsFrom: list[str] | None
 ```
 
-The request body is optional. If present, it may contain two lists passed to the `DNSProcessRequest` (see below) if the zone is discovered (so DNS collection follows).
+The request body is optional. If present, it may contain two lists passed to the `DNSProcessRequest` (see below) if the zone is discovered. The two booleans control whether a DNS and an RDAP process requests will be sent to the respective *to_process* topics.
 
 ```python
 class ZoneResult(Result):
@@ -101,7 +105,7 @@ The primary/secondary NS IPs lists may be null if the corresponding DNS resoluti
 
 ```python
 class DNSProcessRequest:
-    toCollect: list[str] | None
+    typesToCollect: list[str] | None
     typesToProcessIPsFrom: list[str] | None
     zoneInfo: ZoneInfo
 ```
