@@ -23,8 +23,8 @@ services:
       context: .
       dockerfile: ./dockerfiles/kafka-connect.Dockerfile
     depends_on:
-      - kafka1
-      - kafka2
+      initializer:
+        condition: service_completed_successfully
     secrets:
       - kafka-truststore
       - client1-keystore

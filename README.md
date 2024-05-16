@@ -29,11 +29,11 @@ Three Compose files are included. The default [*docker-compose-yml*](./docker-co
 
 - Obtain your GeoLite2 City & ASN databases and place them in [*geoip\_data*](./geoip_data/).
 - Obtain a NERD token and place it in your [*client\_properties/nerd.properties*](./client_properties/nerd.properties).
-- Download the [Confluent JDBC Connector](https://www.confluent.io/hub/confluentinc/kafka-connect-jdbc) and place the zip in [*connect\_plugins*](./connect_plugins/).
+- Download the [Confluent JDBC Connector](https://www.confluent.io/hub/confluentinc/kafka-connect-jdbc) and place the zip in [*connect\_plugins*](./connect_plugins/) (don't extract it).
 
 ### Security
 
-You need to generate a CA, broker certificates and client certificates. You need to have openssl and Java installed (JRE is fine). Then you can run:
+You need to generate a CA, broker certificates and client certificates. Ensure that you have OpenSSL and Java installed (JRE is fine). Then you can run:
 
 ```bash
 ./generate_secrets.sh
