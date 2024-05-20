@@ -48,7 +48,8 @@ services:
     ports:
       - "31001:8080"
     networks:
-      - db-network
+      db-network:
+        ipv4_address: 192.168.45.150
 
 volumes:
   postgres-data:
@@ -63,6 +64,7 @@ networks:
       driver: default
       config:
         - subnet: 192.168.45.128/25
+          ip_range: 192.168.45.192/26
 
 secrets:
   postgres_master_password:
