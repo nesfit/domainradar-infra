@@ -129,6 +129,21 @@ services:
     volumes:
       - ./client_properties/dns.properties:/app/client.properties
 
+  collector-tls:
+    image: domrad/java-standalone
+    command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    secrets:
+      - kafka-truststore
+      - client2-keystore
+    networks:
+      - kafka-client-network
+      - collector-network
+    volumes:
+      - ./client_properties/tls.properties:/app/client.properties
+
   collector-nerd:
     image: domrad/java-standalone
     command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]

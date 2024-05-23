@@ -19,8 +19,10 @@ topic_exists() {
     fi
 }
 
-TOPICS=(to_process_zone to_process_DNS to_process_RDAP_DN to_process_IP processed_zone processed_DNS processed_RDAP_DN collected_IP_data merged_DNS_IP all_collected_data feature_vectors classification_results connect_errors)
-PARTITIONS=(4 4 4 4 4 4 4 4 4 4 4 1 1)
+TOPICS=(to_process_zone to_process_DNS to_process_TLS to_process_RDAP_DN to_process_IP \
+  processed_zone processed_DNS processed_TLS processed_RDAP_DN collected_IP_data \
+  all_collected_data feature_vectors classification_results connect_errors)
+PARTITIONS=(4 4 4 4 4 4 4 4 4 4 4 4 1 1)
 
 SKIP_AFTER="yes"
 

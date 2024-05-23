@@ -107,6 +107,21 @@ services:
     volumes:
       - ./client_properties/dns.properties:/app/client.properties
 
+  collector-tls:
+    image: domrad/java-standalone
+    command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    secrets:
+      - kafka-truststore
+      - client2-keystore
+    networks:
+      - kafka-client-network
+      - collector-network
+    volumes:
+      - ./client_properties/tls.properties:/app/client.properties
+
   collector-nerd:
     image: domrad/java-standalone
     command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
@@ -182,23 +197,9 @@ services:
     volumes:
       - ./client_properties/rtt.toml:/app/config.toml
 
-  merger-ip:
+  merger:
     image: domrad/java-streams
-    command: [ "--ip-merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger-ip", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
-    secrets:
-      - kafka-truststore
-      - client2-keystore
-    networks:
-      - kafka-client-network
-    volumes:
-      - ./client_properties/mergers.properties:/app/client.properties
-
-  merger-all:
-    image: domrad/java-streams
-    command: [ "--domain-merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger-all", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
+    command: [ "--merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
