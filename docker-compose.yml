@@ -78,19 +78,34 @@ services:
   #       condition: service_completed_successfully
 
   collector-zone:
-    image: domrad/java-standalone
-    command: [ "--col-zone", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
+    image: domrad/zone
     depends_on:
       initializer:
         condition: service_completed_successfully
     secrets:
-      - kafka-truststore
-      - client2-keystore
+      - ca-cert
+      - client2-cert
+      - client2-key
     networks:
       - kafka-client-network
       - collector-network
     volumes:
-      - ./client_properties/zone.properties:/app/client.properties
+      - ./client_properties/zone.toml:/app/config.toml
+
+  # collector-zone:
+  #   image: domrad/java-standalone
+  #   command: [ "--col-zone", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
+  #   depends_on:
+  #     initializer:
+  #       condition: service_completed_successfully
+  #   secrets:
+  #     - kafka-truststore
+  #     - client2-keystore
+  #   networks:
+  #     - kafka-client-network
+  #     - collector-network
+  #   volumes:
+  #     - ./client_properties/zone.properties:/app/client.properties
     
   collector-dns:
     image: domrad/java-standalone
