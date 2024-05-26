@@ -2,7 +2,7 @@
 
 This repository contains a Docker Compose setup for a complete DomainRadar testing environment. It includes a Kafka cluster using encrypted communication, the prefilter, the pipeline components (collectors, extractor, classifier), a PostgreSQL database, a MongoDB database, Kafka Connect configured to push data to them, and a web UI.
 
-Three Compose files are included. The default [*docker-compose-yml*](./docker-compose.yml) file provides a single-broker setup, while [*cluster.docker-compose.yml*](./cluster.docker-compose.yml) provides a two-brokers setup. The database services are defined in a separate Dockerfile, [*db.docker-compose.yml*](./db.docker-compose.yml).
+Two Compose files are included. The default [*compose.yml*](./compose.yml) file provides the databases and a single-broker Kafka setup., [*compose.cluster-override.yml*](./compose.cluster-override.yml) provides an override that adds another Kafka broker.
 
 ## Exposed ports and services
 
@@ -13,15 +13,12 @@ Three Compose files are included. The default [*docker-compose-yml*](./docker-co
     - No authentication is used!
 - _adminer_, a web tool for accessing Postgres or Mongo: 31001
     - Credentials must be provided manually when opened.
-    - Defined in *db.docker-compose.yml*.
 - _kafka-connect_, the Kafka Connect REST API: 31002
     - No authentication (will be changed).
 - _postgres_, the PostgreSQL database: 31010
     - Password (SCRAM) authentication (probably will be changed, see below).
-    - Defined in *db.docker-compose.yml*.
 - _mongo_, the MongoDB Community database: 31011
     - Password (SCRAM) authentication (probably will be changed, see below).
-    - Defined in *db.docker-compose.yml*.
 
 ## Preparation
 
@@ -68,13 +65,7 @@ Alternatively, you can build the individual images by hand:
 
 ## Usage
 
-First, start the database services:
-
-```bash
-docker compose -f db.docker-compose.yml up -d
-```
-
-Then start the Kafka and DomainRadar services:
+Start the Kafka and DomainRadar services:
 
 ```bash
 docker compose up
@@ -82,26 +73,36 @@ docker compose up
 
 You can also add the `-d` flag to run the services in the background. The [*follow-component-logs.sh*](./follow-component-logs.sh) script can then be used to “reattach” to the output of all the pipeline components, without the Kafka cluster.
 
-The pipeline services use a Docker network called `domainradar-db-network` created by the `db` Compose file. It **won't start** if this network doesn't exist.
-
-All the included configuration files are set up for the default single-broker Kafka configuration. To use the two-brokers configuration or even extend it to more nodes, follow the instructions in the following paragraphs.
+All the included configuration files are set up for the default single-broker Kafka configuration. To use the two-brokers configuration or even extend it to more nodes, follow the instructions in the [Adding a Kafka node](#adding-a-kafka-node) section.
 
 ## Kafka
 
 Should you need to connect to Kafka from the outside world, the two brokers are published to the host machine on ports **9093** and **9094**. You must modify your */etc/hosts* file to point `kafka1` and `kafka2` to 127.0.0.1.
 
-The Compose configuration defines a *bridge* network `kafka-client-network`. You can add other containers to it and access Kafka using the same ports. The broker containers have fixed IPs: 192.168.45.10 and 192.168.45.20; however, you must always use the hostnames `kafka1` and `kafka2` to access them.
+The Compose configuration defines a *bridge* network `kafka-client-network`. You can add other containers to it and access Kafka using the same ports. The broker containers have fixed IPs: 192.168.100.2 and 192.168.100.3; however, you must always use the hostnames `kafka1` and `kafka2` to access them.
 
 Mind that in the default configuration, client authentication is **required** so you have to use one of the generated client certificates. You can also modify the broker configuration to allow plaintext communication (see below).
 
 ### Using Kafka with two nodes
 
-The *cluster.docker-compose.yml* Compose file builds a Kafka cluster of two nodes. They both run in the combined mode where each instance works both as a controller and as a broker. This is done simply to simulate a small cluster. Node-client communication enforces the use of SSL with client authentication; inter-controller and inter-broker communication are done in plaintext over a separate network (`kafka-inter-node-network`) to reduce overhead.
+The override Compose file changes the setup so that Kafka cluster of two nodes is used. They both run in the combined mode where each instance works both as a controller and as a broker. Node-client communication enforces the use of SSL with client authentication; inter-controller and inter-broker communication are done in plaintext over a separate network (`kafka-inter-node-network`) to reduce overhead.
 
-Before using the , you need to change the `connection.brokers` setting in all the *client\_properties/\*.toml* client configuration files! Then, simply run:
+Before using this setup, you should change the `connection.brokers` setting in all the *client\_properties/\*.toml* client configuration files! 
+
+For some reason, the two-node setup tends to break randomly. I suggest to first start the Kafka nodes, then the initializer, and if it succeeds, start the rest of the services. You can use the *compose_cluster.sh* script which is just a shorthand for `docker compose -f compose.yml -f compose.cluster-override.yml [args]`.
 
 ```bash
-docker compose -f cluster.docker-compose.yml up
+# If some services were started before, remove them
+./compose_cluster.sh down
+# Start the databases
+./compose_cluster.sh up -d postgres mongo
+# Start the cluster
+./compose_cluster.sh up -d kafka1 kafka2
+# Initialize the cluster
+# If this fails, try restarting the cluster
+./compose_cluster.sh up initializer
+# Start the pipeline services
+./service_runner.sh cluster up
 ```
 
 ### Adding a Kafka node
@@ -118,8 +119,9 @@ If you want to test with more Kafka nodes, you have to:
 - Update the `BOOTSTRAP` environment variable for the _initializer_ service (in the Compose file).
 - Update the `KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS` env. variable for the _kafka-ui_ service (in the Compose file).
 - Update the `-s` argument in all the component services (in the Compose file).
-- Update the *.toml* configurations for the Python clients (in the *client\_properties/* directory).
-- Update the `bootstrap.servers` property in _connect\_properties/10\_main.properties_.
+- Preferrably (though the clients should manage with just one bootstrap server):
+    - Update the *.toml* configurations for the Python clients (in the *client\_properties/* directory).
+    - Update the `bootstrap.servers` property in _connect\_properties/10\_main.properties_.
 
 ### Using SSL for inter-broker communication
 

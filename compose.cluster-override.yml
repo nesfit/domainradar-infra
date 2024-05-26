@@ -1,0 +1,95 @@
+services:
+  kafka1:
+    volumes:
+      - kafka1-log:/var/lib/kafka/data
+    networks:
+      kafka-inter-node-network:
+        ipv4_address: 192.168.103.2
+        aliases: [ "kafka1" ]
+    env_file:
+      - ./envs/kafka1.env
+
+  kafka2:
+    image: docker.io/apache/kafka:3.7.0
+    hostname: kafka2
+    volumes:
+      - kafka2-log:/var/lib/kafka/data
+    secrets:
+      - kafka-truststore
+      - kafka2-keystore
+    networks:
+      kafka-client-network:
+        ipv4_address: 192.168.100.3
+        aliases: [ "kafka2" ]
+      kafka-inter-node-network:
+        ipv4_address: 192.168.103.3
+        aliases: [ "kafka2" ]
+    ports:
+      - "9094:9094"
+    env_file:
+      - ./envs/kafka2.env
+
+  kafka-connect: {}
+
+  kafka-ui:
+    environment:
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:9093,kafka2:9094
+
+  initializer:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/initializer.Dockerfile
+      args:
+        - EXTRA_SLEEP=5
+    depends_on:
+      - kafka1
+      - kafka2
+    environment:
+      - BOOTSTRAP=kafka1:9093,kafka2:9094
+
+  # prefilter: {}
+
+  collector-zone: {}
+  
+  collector-dns:
+    command: [ "--col-dns", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+
+  collector-tls:
+    command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+
+  collector-nerd:
+    command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+
+  collector-geoip:
+    command: [ "--col-geoip", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-geoip", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+  
+  collector-rdap-dn: {}
+    
+  collector-rdap-ip: {}
+
+  collector-rtt: {}
+
+  merger:
+    command: [ "--merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+
+  extractor: {}
+
+  classifier-unit: {}
+
+volumes:
+  kafka1-log: {}
+  kafka2-log: {}
+
+networks:
+  kafka-inter-node-network:
+    driver: bridge
+    enable_ipv6: false
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.103.0/24
+          gateway: 192.168.103.1
+
+secrets:
+  kafka2-keystore:
+    file: ./secrets/secrets_kafka2/kafka2.keystore.jks

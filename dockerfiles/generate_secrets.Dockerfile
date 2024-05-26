@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre
+FROM docker.io/eclipse-temurin:21-jre
 ARG UID
 ARG GID
 

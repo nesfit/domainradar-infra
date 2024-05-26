@@ -1,22 +1,20 @@
 services:
   kafka1:
-    image: apache/kafka:3.7.0
+    image: docker.io/apache/kafka:3.7.0
     hostname: kafka1
     volumes:
-      - kafka1-log:/var/lib/kafka/data
+      - kafka1-single-log:/var/lib/kafka/data
     secrets:
       - kafka-truststore
       - kafka1-keystore
     networks:
       kafka-client-network:
-        ipv4_address: 192.168.45.10
+        ipv4_address: 192.168.100.2
         aliases: [ "kafka1" ]
-      kafka-inter-node-network:
-        ipv4_address: 192.168.55.10
     ports:
       - "9093:9093"
     env_file:
-      - ./envs/kafka1.env
+      - ./envs/kafka1_single.env
 
   kafka-connect:
     build:
@@ -25,6 +23,10 @@ services:
     depends_on:
       initializer:
         condition: service_completed_successfully
+      postgres:
+        condition: service_started
+      mongo:
+        condition: service_started
     secrets:
       - kafka-truststore
       - client1-keystore
@@ -38,27 +40,8 @@ services:
       - type: tmpfs
         target: /tmp/kafka-connect
 
-  kafka2:
-    image: apache/kafka:3.7.0
-    hostname: kafka2
-    volumes:
-      - kafka2-log:/var/lib/kafka/data
-    secrets:
-      - kafka-truststore
-      - kafka2-keystore
-    networks:
-      kafka-client-network:
-        ipv4_address: 192.168.45.20
-        aliases: [ "kafka2" ]
-      kafka-inter-node-network:
-        ipv4_address: 192.168.55.20
-    ports:
-      - "9094:9094"
-    env_file:
-      - ./envs/kafka2.env
-
   kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+    image: docker.io/provectuslabs/kafka-ui:latest
     depends_on:
       - kafka1
     secrets:
@@ -73,7 +56,7 @@ services:
     env_file:
       - ./envs/kafka_ui.env
     environment:
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:9093,kafka2:9094
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:9093
 
   initializer:
     build:
@@ -81,7 +64,6 @@ services:
       dockerfile: ./dockerfiles/initializer.Dockerfile
     depends_on:
       - kafka1
-      - kafka2
     secrets:
       - kafka-truststore
       - client1-keystore
@@ -90,7 +72,7 @@ services:
     volumes:
       - ./client_properties/initializer.properties:/scripts/client.properties
     environment:
-      - BOOTSTRAP=kafka1:9093,kafka2:9094
+      - BOOTSTRAP=kafka1:9093
       - COMMAND_CONFIG_FILE=/scripts/client.properties
 
   # prefilter:
@@ -113,25 +95,10 @@ services:
       - collector-network
     volumes:
       - ./client_properties/zone.toml:/app/config.toml
-
-  # collector-zone:
-  #   image: domrad/java-standalone
-  #   command: [ "--col-zone", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
-  #   depends_on:
-  #     initializer:
-  #       condition: service_completed_successfully
-  #   secrets:
-  #     - kafka-truststore
-  #     - client2-keystore
-  #   networks:
-  #     - kafka-client-network
-  #     - collector-network
-  #   volumes:
-  #     - ./client_properties/zone.properties:/app/client.properties
     
   collector-dns:
     image: domrad/java-standalone
-    command: [ "--col-dns", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    command: [ "--col-dns", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -146,7 +113,7 @@ services:
 
   collector-tls:
     image: domrad/java-standalone
-    command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -161,7 +128,7 @@ services:
 
   collector-nerd:
     image: domrad/java-standalone
-    command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -176,7 +143,7 @@ services:
 
   collector-geoip:
     image: domrad/java-streams
-    command: [ "--col-geoip", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-geoip", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    command: [ "--col-geoip", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-geoip", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -234,23 +201,9 @@ services:
     volumes:
       - ./client_properties/rtt.toml:/app/config.toml
 
-  merger-ip:
+  merger:
     image: domrad/java-streams
-    command: [ "--ip-merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger-ip", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
-    secrets:
-      - kafka-truststore
-      - client2-keystore
-    networks:
-      - kafka-client-network
-    volumes:
-      - ./client_properties/mergers.properties:/app/client.properties
-
-  merger-all:
-    image: domrad/java-streams
-    command: [ "--domain-merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger-all", "-p", "/app/client.properties", "-s", "kafka1:9093,kafka2:9094" ]
+    command: [ "--merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -291,33 +244,89 @@ services:
     volumes:
       - ./client_properties/classifier_unit.toml:/app/config.toml
 
+  # --- Databases ---
+
+  postgres:
+    image: docker.io/postgres:16
+    restart: always
+    secrets:
+      - postgres_master_password
+      - postgres_prefilter_password
+      - postgres_ingestion_password
+      - postgres_connect_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./db/postgres/init/:/docker-entrypoint-initdb.d/
+      - ./db/postgres/postgres.conf:/etc/postgresql/postgresql.conf
+    env_file:
+      - ./db/postgres/postgres.env
+    ports:
+      - "31010:5432"
+    networks:
+      db-network:
+        ipv4_address: 192.168.101.2
+        aliases: [ "postgres" ]
+
+  mongo:
+    image: docker.io/mongo:7
+    command: --config /etc/mongod.conf
+    restart: always
+    secrets:
+      - mongo_master_password
+      - mongo_ui_password
+      - mongo_connect_password
+    volumes:
+      - mongo-data:/data/db
+      - ./db/mongo/init/:/docker-entrypoint-initdb.d/
+      - ./db/mongo/mongod.conf.yml:/etc/mongod.conf
+    env_file:
+      - ./db/mongo/mongo.env
+    ports:
+      - "31011:27017"
+    networks:
+      db-network:
+        ipv4_address: 192.168.101.3
+        aliases: [ "mongo" ]
+
+  adminer:
+    build:
+      context: ./dockerfiles
+      dockerfile: adminer-mongo.Dockerfile
+    ports:
+      - "31001:8080"
+    networks:
+      - db-network
+
 volumes:
-  kafka1-log:
-  kafka2-log:
+  kafka1-single-log: {}
+  postgres-data: {}
+  mongo-data: {}
 
 networks:
   kafka-client-network:
     driver: bridge
     enable_ipv6: false
     ipam:
-      driver: default
       config:
-        - subnet: 192.168.45.0/25
-          ip_range: 192.168.45.64/26
-  kafka-inter-node-network:
+        - subnet: 192.168.100.0/24
+          gateway: 192.168.100.1
+          ip_range: 192.168.100.128/25
+  db-network:
     driver: bridge
     enable_ipv6: false
     ipam:
-      driver: default
       config:
-        - subnet: 192.168.55.0/24
+        - subnet: 192.168.101.0/24
+          gateway: 192.168.101.1
+          ip_range: 192.168.101.128/25
   collector-network:
     driver: bridge
     enable_ipv6: true
     ipam:
-      driver: default
       config:
-        - subnet: 10.0.45.0/24
+        - subnet: 192.168.102.0/24
+          gateway: 192.168.102.1
+          ip_range: 192.168.102.128/25
         - subnet: fd10:3456:789a:1::/64
 
 secrets:
@@ -325,8 +334,6 @@ secrets:
     file: ./secrets/kafka.truststore.jks
   kafka1-keystore:
     file: ./secrets/secrets_kafka1/kafka1.keystore.jks
-  kafka2-keystore:
-    file: ./secrets/secrets_kafka2/kafka2.keystore.jks
   client1-keystore:
     file: ./secrets/secrets_client1/client1.keystore.jks
   client2-keystore:
@@ -337,3 +344,19 @@ secrets:
     file: ./secrets/secrets_client2/client2-cert.pem
   client2-key:
     file: ./secrets/secrets_client2/client2-priv-key.pem
+
+  # --- Databases ---
+  postgres_master_password:
+    file: ./db/postgres/master.secret
+  postgres_prefilter_password:
+    file: ./db/postgres/prefilter.secret
+  postgres_ingestion_password:
+    file: ./db/postgres/ingestion.secret
+  postgres_connect_password:
+    file: ./db/postgres/connect.secret
+  mongo_master_password:
+    file: ./db/mongo/master.secret
+  mongo_ui_password:
+    file: ./db/mongo/ui.secret
+  mongo_connect_password:
+    file: ./db/mongo/connect.secret

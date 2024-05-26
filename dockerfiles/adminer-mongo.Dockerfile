@@ -1,4 +1,4 @@
-FROM adminer:latest
+FROM docker.io/adminer:latest
 USER root
 
 RUN apt-get update && \

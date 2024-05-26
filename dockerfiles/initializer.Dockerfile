@@ -1,4 +1,7 @@
-FROM apache/kafka:3.7.0
+FROM docker.io/apache/kafka:3.7.0
+
+ARG EXTRA_SLEEP=0
+ENV EXTRA_SLEEP=${EXTRA_SLEEP}
 
 WORKDIR /scripts
 USER root
@@ -7,4 +10,4 @@ COPY kafka_scripts/prepare_topics.sh ./
 RUN chown appuser:appuser *
 
 USER appuser
-ENTRYPOINT ./wait_for_startup.sh && ./prepare_topics.sh
+ENTRYPOINT ./wait_for_startup.sh && ./prepare_topics.sh && sleep 1

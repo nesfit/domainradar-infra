@@ -1,4 +1,4 @@
-FROM python:3.11-alpine AS python-base
+FROM docker.io/python:3.11-alpine AS python-base
 
 ENV PYTHONUNBUFFERED=1 \
     # prevents python creating .pyc files

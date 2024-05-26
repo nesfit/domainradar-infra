@@ -16,3 +16,8 @@ do
 done
 
 echo "Kafka ready"
+
+if (( EXTRA_SLEEP > 0 )); then
+    echo "Sleeping $EXTRA_SLEEP s"
+    sleep "$EXTRA_SLEEP"
+fi
