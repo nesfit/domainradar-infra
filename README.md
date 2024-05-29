@@ -2,7 +2,7 @@
 
 This repository contains a Docker Compose setup for a complete DomainRadar testing environment. It includes a Kafka cluster using encrypted communication, the prefilter, the pipeline components (collectors, extractor, classifier), a PostgreSQL database, a MongoDB database, Kafka Connect configured to push data to them, and a web UI.
 
-Two Compose files are included. The default [*compose.yml*](./compose.yml) file provides the databases and a single-broker Kafka setup., [*compose.cluster-override.yml*](./compose.cluster-override.yml) provides an override that adds another Kafka broker.
+Two Compose files are included. The default [*compose.yml*](./compose.yml) file provides the databases and a single-broker Kafka setup. [*compose.cluster-override.yml*](./compose.cluster-override.yml) provides an override that adds another Kafka broker.
 
 ## Exposed ports and services
 
@@ -52,14 +52,17 @@ The _db_ directory contains configuration for the database, including user passw
 
 ### Component images
 
-You can use a provided script to clone and build all the images at once:
+You can use a provided script to clone and build all the images at once. Unfortunately, the build process needs to access our private repositories. Please make a GitHub [Personal Access Token](https://github.com/settings/tokens/new) and use it like this:
+
 ```bash
+echo "[GitHub username] [Personal Access Token]" > ~/.github-pat
+export GITHUB_TOKEN_PATH=~/.github-pat
 ./build_all_images.sh
 ```
 
 Alternatively, you can build the individual images by hand:
 
-1. Clone the [domainradar-colext](https://github.com/nesfit/domainradar-colext/) repo and build the Docker images using:  `./build_docker_images.sh` (use `-h` to see the possible flags).
+1. Clone the [domainradar-colext](https://github.com/nesfit/domainradar-colext/) repo and build the Docker images using:  `./build_docker_images.sh` (use `-h` to see the possible flags). This is the script that actually accepts the `GITHUB_TOKEN_PATH` variable and uses it to pass the secret into the build process.
 2. Clone the [domainradar-input](https://github.com/nesfit/domainradar-input) repo and use [*dockerfiles/prefilter.Dockerfile*](./dockerfiles/prefilter.Dockerfile) to build it.
 3. The other components are WIP.
 
