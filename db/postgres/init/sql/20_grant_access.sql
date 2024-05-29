@@ -8,6 +8,9 @@ grant usage on schema public to :PREFILTER_USER;
 grant usage on schema public to :CONNECT_USER;
 grant usage on schema public to :INGESTION_USER;
 
+grant select, usage on all sequences
+    in schema public to :PREFILTER_USER;
+
 -- The input table
 grant select, insert, update
     on table domains_input to :PREFILTER_USER;
