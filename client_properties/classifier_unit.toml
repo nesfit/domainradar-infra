@@ -13,3 +13,4 @@ check_hostname = true
 
 [classifier-unit]
 app_id = "domrad-classifier-unit"
+model_path = "/run/models"

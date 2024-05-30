@@ -243,6 +243,7 @@ services:
       - kafka-client-network
     volumes:
       - ./client_properties/classifier_unit.toml:/app/config.toml
+      - ./clf_models/:/run/models/
 
   # --- Databases ---
 
