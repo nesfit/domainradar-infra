@@ -2,3 +2,5 @@ secrets/
 geoip_data/*.mmdb
 connect_plugins/*.zip
 **/image_build/
+clf_models/models
+clf_models/boundaries
