@@ -19,7 +19,7 @@ BROKER_PASSWORDS=("secret_broker1_password" "secret_broker2_password")
 SECRETS_DIR="secrets"
 CA_KEYSTORE="ca"
 
-BROKER_IPS=("192.168.45.10,IP:192.168.55.10" "192.168.45.20,IP:192.168.55.20")
+BROKER_IPS=("192.168.100.2,IP:192.168.103.2" "192.168.100.3,IP:192.168.103.3")
 
 echo "Making directories"
 
@@ -52,11 +52,11 @@ for ((i=1; i <= NUM_BROKERS; i++)); do
         -genkey -keyalg RSA \
         -storepass "${BROKER_PASSWORDS[$i-1]}" -keypass "${BROKER_PASSWORDS[$i-1]}" \
         -dname "CN=kafka$i, OU=Brokers, O=DomainRadar, C=CZ" \
-        -ext "SAN=DNS:kafka$i,DNS:kafka$i.domrad,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
+        -ext "SAN=DNS:kafka$i,DNS:kafka$i.domrad,DNS:feta4.fit.vutbr.cz,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
 
     keytool -keystore kafka$i.keystore.jks -alias kafka$i -certreq -file kafka$i.csr \
         -storepass "${BROKER_PASSWORDS[$i-1]}" -keypass "${BROKER_PASSWORDS[$i-1]}" \
-        -ext "SAN=DNS:kafka$i,DNS:kafka$i.domrad,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
+        -ext "SAN=DNS:kafka$i,DNS:kafka$i.domrad,DNS:feta4.fit.vutbr.cz,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
 
     cd "$CA_KEYSTORE" || exit 1
     openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
