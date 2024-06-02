@@ -1,8 +1,5 @@
 FROM docker.io/apache/kafka:3.7.0
 
-ARG EXTRA_SLEEP=0
-ENV EXTRA_SLEEP=${EXTRA_SLEEP}
-
 WORKDIR /scripts
 USER root
 COPY kafka_scripts/wait_for_startup.sh ./
