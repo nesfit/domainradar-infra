@@ -4,7 +4,9 @@ BOOTSTRAP=${BOOTSTRAP:-kafka1:9092}
 KAFKA_BIN_DIR=${KAFKA_BIN_DIR:-/opt/kafka/bin}
 COMMAND_CONFIG_FILE=${COMMAND_CONFIG_FILE:-client.properties}
 TOPICS_SCRIPT="$KAFKA_BIN_DIR/kafka-topics.sh"
+CONFIGS_SCRIPT="$KAFKA_BIN_DIR/kafka-configs.sh"
 VERBOSE_TOPICS_AFTER=${VERBOSE_TOPICS_AFTER:-0}
+UPDATE_EXISTING_TOPICS=${UPDATE_EXISTING_TOPICS:-0}
 
 touch "$COMMAND_CONFIG_FILE"
 # List existing topics and store them in a variable
@@ -17,6 +19,26 @@ topic_exists() {
     else
         return 1 # 1 = false in shell script
     fi
+}
+
+get_configs() {
+  local topic=$1
+  local config
+
+  if [[ $topic == to_process_* ]] || [[ $topic == processed_* ]] || [[ $topic == "collected_IP_data" ]]; then
+    config="cleanup.policy=delete"
+  elif [[ $topic == "connect_errors" ]]; then
+    # 7 days
+    config="cleanup.policy=delete,retention.ms=604800000"
+  else
+    config="cleanup.policy=compact"
+  fi
+
+  if [ "$2" = "add" ]; then
+    echo --config ${config//,/ --config }
+  else
+    echo --add-config "$config"
+  fi
 }
 
 TOPICS=(to_process_zone to_process_DNS to_process_TLS to_process_RDAP_DN to_process_IP \
@@ -38,7 +60,11 @@ for i in "${!TOPICS[@]}"; do
         SKIP_AFTER="no"
         echo "Creating topic: $topic ($partitions partitions)."
         $TOPICS_SCRIPT --create --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" \
-          --replication-factor 1 --partitions "$partitions" --topic "$topic"
+          --replication-factor 1 --partitions "$partitions" --topic "$topic" $(get_configs "$topic" add)
+    elif [[ $UPDATE_EXISTING_TOPICS -eq 1 ]]; then
+        echo "Updating topic: $topic."
+        $CONFIGS_SCRIPT --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" \
+          --entity-type topics --entity-name "$topic" --alter $(get_configs "$topic")
     fi
 done
 
