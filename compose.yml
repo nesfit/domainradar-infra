@@ -31,14 +31,14 @@ services:
       - kafka-truststore
       - client1-keystore
     networks:
-      - kafka-client-network
-      - db-network
+      kafka-client-network:
+        ipv4_address: 192.168.100.10
+      db-network: {}
     ports:
       - "31002:8083"
     volumes:
       - ./connect_properties/:/opt/kafka-connect/config/
-      - type: tmpfs
-        target: /tmp/kafka-connect
+      - kafka-connect-offsets:/tmp/kafka-connect
 
   kafka-ui:
     image: docker.io/provectuslabs/kafka-ui:latest
@@ -48,7 +48,8 @@ services:
       - kafka-truststore
       - client1-keystore
     networks:
-      - kafka-client-network
+      kafka-client-network:
+        ipv4_address: 192.168.100.11
     ports:
       - "31000:8080"
     volumes:
@@ -74,6 +75,8 @@ services:
     environment:
       - BOOTSTRAP=kafka1:9093
       - COMMAND_CONFIG_FILE=/scripts/client.properties
+      - EXTRA_SLEEP=0
+      - UPDATE_EXISTING_TOPICS=0
 
   # prefilter:
   #   image: domrad/prefilter
@@ -200,6 +203,9 @@ services:
       - collector-network
     volumes:
       - ./client_properties/rtt.toml:/app/config.toml
+    cap_add:
+      - CAP_NET_RAW
+      - CAP_NET_ADMIN
 
   merger:
     image: domrad/java-streams
@@ -296,12 +302,14 @@ services:
     ports:
       - "31001:8080"
     networks:
-      - db-network
+      db-network:
+        ipv4_address: 192.168.101.10
 
 volumes:
   kafka1-single-log: {}
   postgres-data: {}
   mongo-data: {}
+  kafka-connect-offsets: {}
 
 networks:
   kafka-client-network:

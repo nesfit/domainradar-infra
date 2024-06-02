@@ -76,6 +76,8 @@ services:
     environment:
       - BOOTSTRAP=kafka1:9093
       - COMMAND_CONFIG_FILE=/scripts/client.properties
+      - EXTRA_SLEEP=0
+      - UPDATE_EXISTING_TOPICS=0
 
   # prefilter:
   #   image: domrad/prefilter
