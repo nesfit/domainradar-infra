@@ -1,10 +1,8 @@
 // This is the MongoDB aggregation pipeline that uses metadata and data from the DNS and IP collectors
-// stored in the 'db_data' and 'ip_data' collections to create a single document per domain name
-// in the format expected by the UI.
+// and the classififiers stored in the 'db_data', 'ip_data' and 'classification_results' collections 
+// to create a single document per domain name in the format expected by the UI.
 
 // TODO: Add missing fields:
-// - the classification data (join from another collection)
-// - the 'last_seen' date – transferred over from Postgres OR calculated from the latest collection date??!
 // - the QRadar offense source – should it be stored in 'ip_data' or separately??!
 
 var pipeline = [
@@ -147,15 +145,64 @@ var pipeline = [
             "as": "ip_addresses"
         }
     },
+    // Join with the classification results collection
     {
-        // Project the domain data, joined with the corresponding IPs, to the final format
+        "$lookup": {
+            "from": "classification_results",
+            "localField": "_id",
+            "foreignField": "domain_name",
+            "pipeline": [
+                {
+                    "$group": {
+                        "_id": "$domain_name",
+                        "top": {
+                            "$top": {
+                                "sortBy": { "timestamp": 1 },
+                                "output": { "aggregate_probability": "$aggregate_probability", "aggregate_description": "$aggregate_description" }
+                            }
+                        },
+                        "classification_results": {
+                            "$push": "$classification_results"
+                        }
+                    }
+                },
+                {
+                    "$project": {
+                        "_id": 1,
+                        "aggregate_probability": "$top.aggregate_probability",
+                        "aggregate_description": "$top.aggregate_description",
+                        "classification_results": {
+                            "$concatArrays": "$classification_results"
+                        }
+                    }
+                }
+            ],
+            "as": "clf_agg"
+        }
+    },
+    // Extract the only element of the "clf_agg" array
+    {
+        "$set": {
+            "clf_agg":
+            {
+                "$cond": {
+                    "if": { "$gt": [{ "$size": "$clf_agg" }, 0] },
+                    "then": { "$arrayElemAt": ["$clf_agg", 0] },
+                    "else": null
+                }
+            }
+        }
+    },
+    // Project the domain data, joined with the corresponding IPs, to the final format
+    {
         "$project": {
             "_id": 0,
             "domain_name": "$_id",
+            "aggregate_probability": "$clf_agg.aggregate_probability",
+            "aggregate_description": "$clf_agg.aggregate_description",
             "ip_addresses": 1,
-            "classification_results": null, // TODO
+            "classification_results": "$clf_agg.classification_results",
             "first_seen": 1,
-            "last_seen": null, // TODO
             "collection_results": {
                 "$sortArray": {
                     "input": "$documents",
