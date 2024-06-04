@@ -27,7 +27,7 @@ get_configs() {
 
   if [[ $topic == to_process_* ]] || [[ $topic == processed_* ]] || [[ $topic == "collected_IP_data" ]]; then
     config="cleanup.policy=delete"
-  elif [[ $topic == "connect_errors" ]]; then
+  elif [[ $topic == "connect_errors" ]] || [[ $topic == "feature_vectors" ]]; then
     # 7 days
     config="cleanup.policy=delete,retention.ms=604800000"
   else
