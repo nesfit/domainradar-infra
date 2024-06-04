@@ -33,6 +33,7 @@ services:
     networks:
       kafka-client-network:
         ipv4_address: 192.168.100.10
+        aliases: [ "kafka-connect" ]
       db-network: {}
     ports:
       - "31002:8083"
