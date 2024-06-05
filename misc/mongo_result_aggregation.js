@@ -16,7 +16,7 @@ var pipeline = [
                     "collection_date": "$_id.timestamp",
                     "source": "$_id.collector",
                     "error": "$error",
-                    "statusCode": "$statusCode"
+                    "status_code": "$statusCode"
                 }
             },
             // Consider the earliest collection date to be the "first seen" date
@@ -95,6 +95,7 @@ var pipeline = [
                             "$arrayToObject": "$latest_data"
                         },
                         // Reduce the array of arrays to a single array
+                        // (you cannot use $concatArrays here, it cannot accept an existing array of arrays!)
                         "all": {
                             "$reduce": {
                                 "input": "$all",
@@ -115,14 +116,15 @@ var pipeline = [
                         "_id": 0,
                         "ip": "$_id",
                         "geo": {
-                            "country_code": "$results.geo_asn.countryCode",
-                            "region": "$results.geo_asn.region",
-                            "region_code": "$results.geo_asn.regionCode",
-                            "city": "$results.geo_asn.city",
-                            "postal_code": "$results.geo_asn.postalCode",
-                            "latitude": "$results.geo_asn.countryCode",
-                            "longitude": "$results.geo_asn.countryCode",
-                            "timezone": "$results.geo_asn.countryCode",
+                            "country": "$results.geo_asn.countryCode",
+                            "country_code" : "$results.geo_asn.countryCode",
+                            "region" : "$results.geo_asn.region",
+                            "region_code" : "$results.geo_asn.regionCode",
+                            "city" : "$results.geo_asn.city",
+                            "postal_code" : "$results.geo_asn.postalCode",
+                            "latitude" : "$results.geo_asn.latitude",
+                            "longitude" : "$results.geo_asn.longitude",
+                            "timezone" : "$results.geo_asn.timezone"
                         },
                         "asn": {
                             "asn": "$results.geo_asn.asn",
@@ -152,35 +154,56 @@ var pipeline = [
             "localField": "_id",
             "foreignField": "domain_name",
             "pipeline": [
+                // This internal aggregation pipeline processes the entries
+                // selected for each domain name
                 {
+                    // Group by domain name to extract the latest classification result
                     "$group": {
                         "_id": "$domain_name",
+                        // An object with the latest aggregate probability and description
                         "top": {
                             "$top": {
-                                "sortBy": { "timestamp": 1 },
+                                "sortBy": { "timestamp": -1 }, // Sort by timestamp in descending order
                                 "output": { "aggregate_probability": "$aggregate_probability", "aggregate_description": "$aggregate_description" }
                             }
                         },
+                        // An array of arrays with the classification results
                         "classification_results": {
                             "$push": "$classification_results"
                         }
                     }
                 },
                 {
+                    // Project the data to the final format
                     "$project": {
                         "_id": 1,
+                        // Push the aggregates from the "top" object to the root
                         "aggregate_probability": "$top.aggregate_probability",
                         "aggregate_description": "$top.aggregate_description",
+                        // Reduce the array of arrays to a single array
+                        // (you also cannot use $concatArrays here)
                         "classification_results": {
-                            "$concatArrays": "$classification_results"
+                            "$reduce": {
+                                "input": "$classification_results",
+                                "initialValue": [],
+                                "in": {
+                                    "$concatArrays": [
+                                        "$$value",
+                                        "$$this"
+                                    ]
+                                }
+                            }
                         }
                     }
                 }
             ],
+            // The clf_agg field will be an array of the results from the "lookup", however,
+            // as the internal pipeline groups by domain name, there will always be either none or only one element in the array
             "as": "clf_agg"
         }
     },
-    // Extract the only element of the "clf_agg" array
+    // For each domain name, extract the only element of the "clf_agg" array
+    // (or set to null if the array is empty - no clf results found for the domain name)
     {
         "$set": {
             "clf_agg":
@@ -194,20 +217,47 @@ var pipeline = [
         }
     },
     // Project the domain data, joined with the corresponding IPs, to the final format
+    // Sort the collection and classification results by date (ascending)
+    // Convert nulls to default values
     {
         "$project": {
             "_id": 0,
             "domain_name": "$_id",
-            "aggregate_probability": "$clf_agg.aggregate_probability",
-            "aggregate_description": "$clf_agg.aggregate_description",
+            "aggregate_probability": { "$ifNull": ["$clf_agg.aggregate_probability", -1] },
+            "aggregate_description": { "$ifNull": ["$clf_agg.aggregate_description", "not classified yet"] },
             "ip_addresses": 1,
-            "classification_results": "$clf_agg.classification_results",
+            "classification_results": {
+                "$sortArray": {
+                    "input": { "$ifNull": ["$clf_agg.classification_results", []] },
+                    "sortBy": {
+                        "classification_date": 1
+                    }
+                }
+            },
             "first_seen": 1,
             "collection_results": {
                 "$sortArray": {
                     "input": "$documents",
                     "sortBy": {
                         "collection_date": 1
+                    }
+                }
+            },
+            "additional_info": null
+        }
+    },
+    // Convert the UNIX timestamps (ms) in classification_results to dates
+    {
+        "$set": {
+            "classification_results": {
+                "$map": {
+                    "input": "$classification_results",
+                    "in": {
+                        "classification_date": { "$toDate": "$$this.classification_date" },
+                        "probability": "$$this.probability",
+                        "classifier": "$$this.classifier",
+                        "description": "$$this.description",
+                        "details": "$$this.details"
                     }
                 }
             }
