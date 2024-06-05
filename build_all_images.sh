@@ -2,50 +2,44 @@
 
 BUILD_DIR=image_build
 COLEXT_DIR="domainradar-colext"
-INPUT_DIR="domainradar-input"
+# INPUT_DIR="domainradar-input"
 CLF_DIR="domainradar-clf"
+UI_DIR="domainradar-ui"
 
 cd dockerfiles || exit 1
 
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR" || exit 1
 
-if [ -d "$INPUT_DIR" ]; then
-  echo "Pulling latest domainradar-input"
-  cd "$INPUT_DIR" || exit 1
-  git pull
-  cd ..
-else
-  git clone git@github.com:nesfit/domainradar-input.git "$INPUT_DIR"
-fi
+clone_or_pull() {
+  if [ -d "$1" ]; then
+    echo "Pulling latest $2"
+    cd "$1" || exit 1
+    git pull
+    cd ..
+  else
+    git clone "git@github.com:nesfit/$2.git" "$1"
+  fi
+}
 
-if [ -d "$COLEXT_DIR" ]; then
-  echo "Pulling latest domainradar-colext"
-  cd "$COLEXT_DIR" || exit 1
-  git pull
-  cd ..
-else
-  git clone git@github.com:nesfit/domainradar-colext.git "$COLEXT_DIR"
-fi
-
-if [ -d "$CLF_DIR" ]; then
-  echo "Pulling latest domainradar-clf"
-  cd "$CLF_DIR" || exit 1
-  git pull
-  cd ..
-else
-  git clone git@github.com:nesfit/domainradar-clf.git "$CLF_DIR"
-fi
+clone_or_pull "$COLEXT_DIR" "domainradar-colext"
+# clone_or_pull "$INPUT_DIR" "domainradar-input"
+clone_or_pull "$CLF_DIR" "domainradar-clf"
+clone_or_pull "$UI_DIR" "domainradar-ui"
 
 cd ..
 
-echo "Building the prefilter image"
-docker build -f prefilter.Dockerfile -t domrad/prefilter .
+# echo "Building the domrad/prefilter image"
+# docker build -f prefilter.Dockerfile -t domrad/prefilter .
 
 echo "Building the pipeline images"
 cd "$BUILD_DIR/$COLEXT_DIR" || exit 1
 ./build_docker_images.sh
+cd ../..
 
+echo "Building the domrad/webui image"
+cd "$BUILD_DIR/$UI_DIR" || exit 1
+docker build -t domrad/webui .
 cd ../..
 
 echo "Copying models"
