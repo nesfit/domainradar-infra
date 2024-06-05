@@ -67,8 +67,8 @@ services:
     networks:
       db-network:
         ipv4_address: 192.168.101.11
-    ports:
-      - "31003:3784"
+#    ports:
+#      - "31003:3784"
     env_file:
       - ./envs/webui.env
 
