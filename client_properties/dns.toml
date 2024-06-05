@@ -14,10 +14,11 @@ check_hostname = true
 [faust]
 producer_compression_type = "zstd"
 
-[zone]
-app_id = "domrad-zone"
+[dns]
+app_id = "domrad-dns"
 debug = false
 dns_servers = ["195.113.144.194", "195.113.144.233"]
-timeout = 4
+timeout = 5
 rotate_nameservers = true
+use_one_socket = true
 concurrency = 16
