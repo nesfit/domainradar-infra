@@ -29,6 +29,7 @@ db.createUser(
     user: "$MASTER_USER",
     pwd: "$MASTER_PASSWORD",
     roles: [
+      { role: "root", db: "admin" },
       { role: "userAdminAnyDatabase", db: "admin" },
       { role: "readWriteAnyDatabase", db: "admin" }
     ]

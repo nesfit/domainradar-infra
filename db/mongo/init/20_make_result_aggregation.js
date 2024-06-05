@@ -265,6 +265,7 @@ const pipeline = [
     }
 ];
 
+db = db.getSiblingDB('domainradar');
 db.createCollection("domains", { "viewOn": "dn_data", "pipeline": pipeline });
 
 // Or run as:
