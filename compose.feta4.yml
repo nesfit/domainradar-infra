@@ -60,6 +60,18 @@ services:
     environment:
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:9093
 
+  webui:
+    image: domrad/webui
+    depends_on:
+      - mongo
+    networks:
+      db-network:
+        ipv4_address: 192.168.101.11
+    ports:
+      - "31003:3784"
+    env_file:
+      - ./envs/webui.env
+
   initializer:
     build:
       context: .  # The root of the domainradar repo
