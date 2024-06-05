@@ -113,19 +113,19 @@ services:
       - ./client_properties/zone.toml:/app/config.toml
 
   collector-dns:
-    image: domrad/java-standalone
-    command: [ "--col-dns", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
+    image: domrad/dns
     depends_on:
       initializer:
         condition: service_completed_successfully
     secrets:
-      - kafka-truststore
-      - client2-keystore
+      - ca-cert
+      - client2-cert
+      - client2-key
     networks:
       - kafka-client-network
       - collector-network
     volumes:
-      - ./client_properties/dns.properties:/app/client.properties
+      - ./client_properties/dns.toml:/app/config.toml
 
   collector-tls:
     image: domrad/java-standalone
