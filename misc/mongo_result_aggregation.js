@@ -1,1 +1,0 @@
-../db/mongo/init/30_make_result_aggregation.js
