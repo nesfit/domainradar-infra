@@ -11,7 +11,6 @@ The components shown in green collect data for a domain name, the blue component
 
 All the events (= Kafka messages) in the intermediary *processed_\** topics and the *classification_results* topic are exported (with varying granularity) to the PostgreSQL and MongoDB databases through Kafka Connect. See [this page](./kafka_connect.md) for more information.
 
-
 ## Models
 
 In this document, the data structures are described using a syntax similar to Python dataclasses. However, in the actual implementation, they are serialized as JSON (this will later be changed to a binary format with pre-defined schemas, probably Avro). The classes implementing the models are [here (Java)](https://github.com/nesfit/domainradar-colext/tree/main/java_pipeline/common/src/main/java/cz/vut/fit/domainradar/models) and [here (Python)](https://github.com/nesfit/domainradar-colext/blob/main/python_pipeline/common/models.py).
@@ -36,6 +35,8 @@ The last attempt field contains a UNIX timestamp (in milliseconds) of when the o
 Process requests sent to the zone, DNS, TLS and RDAP-DN collectors are always keyed by a domain name. The keys of the Kafka events should be pure ASCII-encoded strings.
 
 ### Zone collector
+
+TODO: general description of what it does.
 
 - Input topic: *to_process_zone*
     - Key: string – DN
@@ -84,6 +85,8 @@ class SOARecord:
 The primary/secondary NS IPs lists may be null if the corresponding DNS resolutions failed. See [this wiki page](https://github.com/google/guava/wiki/InternetDomainNameExplained) for an explanation of what public and registry suffixes mean.
 
 ### DNS collector
+
+TODO: general description of what it does.
 
 - Input topic: *to_process_DNS*: request for the DNS collector
     - Key: string – DN
@@ -161,6 +164,8 @@ The `relatedIps` properties of `CNAMERecord`, `MXRecord`, `NSRecord` may contain
 
 ### TLS collector
 
+TODO: general description of what it does.
+
 - Input topic: *to_process_TLS*: request for the TLS collector
     - Key: string – DN
     - Value: string - an IP address
@@ -193,6 +198,8 @@ The `certificates` list contains `Certificate` pairs of distinguished name and r
 
 ### RDAP-DN collector
 
+TODO: general description of what it does.
+
 - Input topic: *to_process_RDAP_DN*: request for the RDAP-DN collector
     - Key: string – DN
     - Value: empty or `RDAPDomainRequest`
@@ -214,7 +221,7 @@ class RDAPDomainResult(Result):
     rdapData: dict[str, Any] | None  # null iff statusCode != 0
     entities: dict[str, Any] | None  # null iff statusCode != 0
 
-    whoisStatusCode: int  # the default value is -1
+    whoisStatusCode: int32  # the default value is -1
     whoisError: str | None  # null iff whoisStatusCode != 0
     whoisRaw: str | None  # null iff whoisStatusCode != 0
     whoisParsed: dict[str, Any] | None  # null iff whoisStatusCode != 0
@@ -238,8 +245,6 @@ class IPRequest:
     collectors: list[str] | None
 ```
 
-
-
 The base result model for all IP collector results is `CommonIPResult of TData`.
 ```python
 class CommonIPResult[TData](Result):
@@ -261,24 +266,111 @@ These results carry a string identifier of the collector that created them. The 
 
 ### RDAP-IP collector
 
+TODO: general description of what it does.
+
 - Output value: `RDAPIPResult` ~ `CommonIPResult of dict[str, Any]`
 - **TODO: Errors**
 
-TODO
+The `data` field of an `RDAPIPResult` is the deserialized JSON response from RDAP. It is taken as-is without any further processing.
 
 ### NERD collector
 
-TODO
+TODO: general description of what it does.
 
+- Output value: `NERDResult` ~ `CommonIPResult of NERDData`
+
+```python
+class NERDData:
+    reputation: float64
+```
+
+The `data` field of a `NERDResult` is `NERDData`, a container with a single floating-point value representing the reputation. This data model may be extended in the future.
 
 ### GeoIP & Autonomous System collector
 
-TODO
+TODO: general description of what it does.
+
+- Output value: `GeoIPResult` ~ `CommonIPResult of GeoIPData`
+
+```python
+class GeoIPData:
+    continentCode: str | None
+    countryCode: str | None
+    region: str | None
+    regionCode: str | None
+    city: str | None
+    postalCode: str | None
+    latitude: float64 | None
+    longitude: float64 | None
+    timezone: str | None
+    registeredCountryGeoNameId: int64 | None
+    representedCountryGeoNameId: int64 | None
+    asn: int64 | None
+    asnOrg: str | None
+    networkAddress: str | None
+    prefixLength: int32 | None
+```
+The `data` field of a `NERDResult` is `NERDData`, a container with values retrieved from the GeoIP (GeoLite2) databases.
 
 ### RTT (ping) collector
 
-TODO
+TODO: general description of what it does.
 
-## All data merger
+- Output value: `RTTResult` ~ `CommonIPResult of RTTData`
+
+```python
+class RTTData:
+    min: float64
+    avg: float64
+    max: float64
+    sent: int32
+    received: int32
+    jitter: float64
+``` 
+
+## Merging the data
+
+The data are being continuously collected and stored in the corresponding *processed_\** topics. Before invoking the feature extractor, they must be merged into a single data object.
+
+The [data merger pipeline component](https://github.com/nesfit/domainradar-colext/blob/main/java_pipeline/streams-components/src/main/java/cz/vut/fit/domainradar/streams/mergers/CollectedDataMergerComponent.java) based on Kafka Streams works by transforming the result topics into logical tables and perfoming joins between them. For more information on the concept, see the Kafka documentation on the [Duality of Streams and Tables](https://kafka.apache.org/37/documentation/streams/core-concepts#streams_concepts_duality). 
+
+Symbolically, the merging operation does this:
+```
+all_IP_data_for_DN <- collected_IP_data
+  .group by key: get groups keyed by (DN:IP) that contains IP-coll. results
+  .aggregate: for each (DN:IP) group, make a map of <IP-coll. name -> IP-coll. result>
+  .group by DN
+  .aggregate: for each DN group, make a map of <IP -> map of <IP-coll. name -> IP-coll. result>>
+
+zone_table <- table from processed_zone
+DNS_table <- table from processed_DNS
+RDAP_DN_table <- table from processed_RDAP_DN
+TLS_table <- table from processed_TLS 
+
+merged_DNS_IP_table <- DNS_table
+  .left join with all_IP_data_for_DN
+
+final_result_table <- merged_DNS_IP_table
+  .join with zone_table
+  .left join with TLS_table
+  .left join with RDAP_DN_table
+```
+
+The output topic for the merged data is *all_collected_data*. The final data model is `FinalResult`:
+```python
+class FinalResult:
+    zone: ZoneInfo
+    dnsResult: ExtendedDNSResult
+    tlsResult: TLSResult | None
+    rdapDomainResult: RDAPDomainResult | None
+
+class ExtendedDNSResult(DNSResult):
+    # Map of IP address -> (map of IP collector name -> collection result)
+    ipResults: dict[str, dict[str, CommonIPResult of Any]]
+```
+
+Observe that if zone/SOA resolution fails, the merger is **not** triggered for the domain name and no `FinalResult` is produced. Such entries may be handled by a separate channel picking up failed `ZoneResult`s from *processed_zone*.
+
+## Feature extractor
 
 TODO
