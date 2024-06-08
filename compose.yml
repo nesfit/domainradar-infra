@@ -123,6 +123,7 @@ services:
 
   collector-tls:
     image: domrad/java-standalone
+    entrypoint: [ "java", "-Djava.security.properties=/app/legacy.security", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
     command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
