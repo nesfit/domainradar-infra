@@ -25,7 +25,8 @@ get_configs() {
   local topic=$1
   local config
 
-  if [[ $topic == to_process_* ]] || [[ $topic == processed_* ]] || [[ $topic == "collected_IP_data" ]]; then
+  if [[ $topic == to_process_* ]] || [[ $topic == processed_* ]] || \
+       [[ $topic == "collected_IP_data" ]] || [[ $topic == "filtered_input_domains" ]]; then
     config="cleanup.policy=delete"
   elif [[ $topic == "connect_errors" ]] || [[ $topic == "feature_vectors" ]]; then
     # 7 days
@@ -43,8 +44,8 @@ get_configs() {
 
 TOPICS=(to_process_zone to_process_DNS to_process_TLS to_process_RDAP_DN to_process_IP \
   processed_zone processed_DNS processed_TLS processed_RDAP_DN collected_IP_data \
-  all_collected_data feature_vectors classification_results connect_errors)
-PARTITIONS=(4 4 4 4 4 4 4 4 4 4 4 4 1 1)
+  all_collected_data feature_vectors classification_results connect_errors filtered_input_domains)
+PARTITIONS=(4 4 4 4 4 4 4 4 4 4 4 4 1 1 1)
 
 SKIP_AFTER="yes"
 
