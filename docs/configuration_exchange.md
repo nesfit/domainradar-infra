@@ -45,7 +45,7 @@ The configuration exchange JSON for the loader looks like this:
             "type": "FileBlockListFilter",
             "args": [],
             "kwargs": {
-                "filter_result_action": FilterAction.STORE,
+                "filter_result_action": "FilterAction.STORE",
                 "filename": "block.list"
             }
         },
@@ -53,7 +53,7 @@ The configuration exchange JSON for the loader looks like this:
             "type": "FileBlockListFilter",
             "args": [],
             "kwargs": {
-                "filter_result_action": FilterAction.DROP,
+                "filter_result_action": "FilterAction.DROP",
                 "filename": "block2.list"
             }
         }
