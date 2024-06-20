@@ -2,15 +2,59 @@
 
 All the components in the system use various configuration properties. This document describes how configuration may be distributed among them at runtime.
 
-Kafka is used as the data bus for storing and distributing the configurations. All configurations are stored in the `system_configurations` topic. All events in this topic must have:
+Kafka is used as the data bus for storing and distributing the configurations. The `configuration_change_requests` topic is used to update the configuration of any component. All events published to this topic have:
 - key: the target component ID,
-- value: the entire configuration blob serialized as JSON.
+- value: the entire configuration object serialized as JSON.
 
-When any component starts, it **must** load its configuration by reading the `system_configurations` topic from the start (offset 0) and applying the *last* event with a key corresponding to the component's ID. The topic is often compacted, so only the most recent configuration event will be stored.
+When an event is consumed from `configuration_change_requests`, the component checks if its ID matches the key and if so, validates the input configuration object. If it's valid, the current configuration is **replaced** with this object. After a request is processed (both valid and invalid), a response event is published.
 
-If no configuration event for the component is found in the `system_configurations` topic, the component **must** use apply its predefined defaults and **publish** them to the topic.
+The `configuration_states` topics is used to provide responses to configuration change requests. All events published to this topic have:
+- key: the affected component ID,
+- value: a `ConfigurationChangeResult` object (see below) serialized as JSON. 
+
+When any component starts, it **must** load its runtime configuration by reading the `configuration_states` topic from the start (offset 0) and applying the configuration from the `currentConfig` field of the *last* event with a key corresponding to the component's ID. If no such event is found, the component **must** use apply its predefined defaults and **publish** a change result message, as if the configuration was just changed.
 
 This implies that Kafka connection parameters must be configured statically. The components **should** ensure that the Kafka connection parameters cannot be changed using the runtime configuration exchange.
+
+Note: The request topic is regularly cleaned, so the messages are considered transient. The reponse topic is compacted, so only after some time, only the most recent configuration event will be stored. For this reason, even unsuccessful results must carry a snapshot of the last valid configuration.
+
+## Configuration change results
+
+The reponse model is defined as:
+```python
+class ConfigurationChangeResult:
+    success: bool
+    errors:  list[ConfigurationValidationError] | None
+    message: str | None
+    currentConfig: dict[str, json]
+
+class ConfigurationValidationError:
+    propertyPath: str
+    errorCode:    int
+    error:        str | None
+    soft:         bool
+```
+
+- `currentConfig` **always** contains a complete snapshot of the currently used runtime configuration (i.e., the last successfully applied one).
+- `success` is true if (and only if) the configuration was successfully applied.
+- `errors` may contain a list of `ConfigurationValidationError` values that describe the individual errors (or warnings) per property. Their `errorCode` field contains one of the values from the table below.
+- `message` may contain an arbitrary human-readable message describing the result.
+
+There might be multiple errors for a single property. A validation error may be *soft*, i.e., it did not prevent the configuration from being applied but may cause issues. In this case, the validation error is interpreted as a warning.
+
+### Error codes
+
+| Code | Name              | Description |
+| ---- | ----------------- | ----------- |
+| 1    | OTHER             | Unspecified error. |
+| 2    | INVALID\_MESSAGE  | Invalid input message format (configuration model deserialization error). |
+| 3    | INVALID\_PROPERTY | No such configuration property exists. |
+| 4    | INVALID\_TYPE     | Invalid data type of the provided value. |
+| 5    | OUT\_OF\_RANGE    | The provided value is out of the allowed range. |
+| 6    | READ\_ONLY        | The property cannot be changed dynamically. |
+| 7    | MISSING           | The property must be explicitly defined. |
+
+## Component IDs
 
 The available component IDs are:
 - loader
