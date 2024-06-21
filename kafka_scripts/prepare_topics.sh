@@ -31,8 +31,12 @@ get_configs() {
   elif [[ $topic == "connect_errors" ]] || [[ $topic == "feature_vectors" ]]; then
     # 7 days
     config="cleanup.policy=delete,retention.ms=604800000"
-  elif [[ $topic == "system_configuration "]]; then
-    config="cleanup.policy=compact,min.compaction.lag.ms=1000,max.compaction.lag.ms=3600000"
+  elif [[ $topic == "configuration_change_requests" ]]; then
+    # 12 hours
+    config="cleanup.policy=delete,retention.ms=43200000"
+  elif [[ $topic == "configuration_states" ]]; then
+    # min compaction lag: 10 min, max compaction lag: 12 hours
+    config="cleanup.policy=compact,min.compaction.lag.ms=600000,max.compaction.lag.ms=43200000"
   else
     config="cleanup.policy=compact"
   fi
@@ -47,8 +51,8 @@ get_configs() {
 TOPICS=(to_process_zone to_process_DNS to_process_TLS to_process_RDAP_DN to_process_IP \
   processed_zone processed_DNS processed_TLS processed_RDAP_DN collected_IP_data \
   all_collected_data feature_vectors classification_results connect_errors filtered_input_domains \
-  system_configuration)
-PARTITIONS=(4 4 4 4 4 4 4 4 4 4 4 4 1 1 1 1)
+  configuration_change_requests configuration_states)
+PARTITIONS=(4 4 4 4 4 4 4 4 4 4 4 4 1 1 1 1 1)
 
 SKIP_AFTER="yes"
 
