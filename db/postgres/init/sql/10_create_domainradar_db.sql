@@ -1,7 +1,8 @@
 create table domains_input (
-    id            serial    primary key,
-    domain        text      not null,
-    added         timestamp not null,
+    id            serial                   primary key,
+    domain        text                     not null unique,
+    first_seen    timestamp with time zone not null default now(),
+    added         timestamp with time zone not null,
     filter_output jsonb
 );
 
