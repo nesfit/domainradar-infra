@@ -178,7 +178,7 @@ const pipeline = [
                 },
 
                 {
-                    $unset: ["domainName", "_id", "offset"]
+                    $unset: ["domainName", "_id", "k_offset", "k_partition"]
                 },
 
                 // Stage 5
@@ -316,21 +316,22 @@ const pipeline = [
             "rdapDomainResult.domainName",
             "rdapDomainResult.collector",
             "rdapDomainResult._id",
-            "rdapDomainResult.offset",
+            "rdapDomainResult.k_offset",
+            "rdapDomainResult.k_partition",
             "dnsResult.domainName",
             "dnsResult.collector",
             "dnsResult._id",
-            "dnsResult.offset",
+            "dnsResult.k_offset",
+            "dnsResult.k_partition",
             "tlsResult.domainName",
             "tlsResult.collector",
             "tlsResult._id",
-            "tlsResult.offset"
+            "tlsResult.k_offset",
+            "tlsResult.k_partition"
         ]
     }
 ];
 
-db = db.getSiblingDB('domainradar');
-db.createCollection("all_raw_data", { "viewOn": "dn_data", "pipeline": pipeline });
-
-// Or run as:
-// db.getCollection("db_data").aggregate(pipeline, {allowDiskUse: true})
+const materializedView = true;
+load('./common.js');
+makeView("all_raw_data", "dn_data", pipeline, materializedView);

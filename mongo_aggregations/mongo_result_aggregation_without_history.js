@@ -255,8 +255,6 @@ const pipeline = [
     }
 ];
 
-db = db.getSiblingDB('domainradar');
-db.createCollection("domains", { "viewOn": "dn_data", "pipeline": pipeline });
-
-// Or run as:
-// db.getCollection("db_data").aggregate(pipeline, {allowDiskUse: true})
+const materializedView = true;
+load('./common.js');
+makeView("domains", "dn_data", pipeline, materializedView);

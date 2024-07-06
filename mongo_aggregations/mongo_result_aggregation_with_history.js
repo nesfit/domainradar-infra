@@ -2,6 +2,9 @@
 // and the classififiers stored in the 'db_data', 'ip_data' and 'classification_results' collections 
 // to create a single document per domain name in the format expected by the UI.
 
+// This version includes all classification results for each domain name, sorted by date.
+// See mongo_result_aggregation_without_history.js for a version that includes only the latest classification result.
+
 // TODO: Add missing fields:
 // - the QRadar offense source – should it be stored in 'ip_data' or separately??!
 
@@ -265,8 +268,6 @@ const pipeline = [
     }
 ];
 
-db = db.getSiblingDB('domainradar');
-db.createCollection("domains", { "viewOn": "dn_data", "pipeline": pipeline });
-
-// Or run as:
-// db.getCollection("db_data").aggregate(pipeline, {allowDiskUse: true})
+const materializedView = true;
+load('./common.js');
+makeView("domains", "dn_data", pipeline, materializedView);
