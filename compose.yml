@@ -316,7 +316,7 @@ services:
       db-network:
         ipv4_address: 192.168.101.20
     environment:
-      - AGGREGATION=mongo_result_aggregation_without_history.js
+      - AGGREGATION=results_without_classification_history.js
       - PERIOD_SEC=60
 
   mongo-raw-data-refresher:
@@ -332,7 +332,7 @@ services:
       db-network:
         ipv4_address: 192.168.101.21
     environment:
-      - AGGREGATION=mongo_input_all_data_aggregation.js
+      - AGGREGATION=all_raw_data.js
       - PERIOD_SEC=600
 
   adminer:

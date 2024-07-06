@@ -2,8 +2,8 @@
 // and the classififiers stored in the 'db_data', 'ip_data' and 'classification_results' collections 
 // to create a single document per domain name in the format expected by the UI.
 
-// This version includes only the latest classification result.
-// See mongo_result_aggregation_with_history.js for a version that includes all classification results.
+// This version includes all classification results for each domain name, sorted by date.
+// See mongo_result_aggregation_without_history.js for a version that includes only the latest classification result.
 
 // TODO: Add missing fields:
 // - the QRadar offense source – should it be stored in 'ip_data' or separately??!
@@ -120,14 +120,14 @@ const pipeline = [
                         "ip": "$_id",
                         "geo": {
                             "country": "$results.geo_asn.countryCode",
-                            "country_code": "$results.geo_asn.countryCode",
-                            "region": "$results.geo_asn.region",
-                            "region_code": "$results.geo_asn.regionCode",
-                            "city": "$results.geo_asn.city",
-                            "postal_code": "$results.geo_asn.postalCode",
-                            "latitude": "$results.geo_asn.latitude",
-                            "longitude": "$results.geo_asn.longitude",
-                            "timezone": "$results.geo_asn.timezone"
+                            "country_code" : "$results.geo_asn.countryCode",
+                            "region" : "$results.geo_asn.region",
+                            "region_code" : "$results.geo_asn.regionCode",
+                            "city" : "$results.geo_asn.city",
+                            "postal_code" : "$results.geo_asn.postalCode",
+                            "latitude" : "$results.geo_asn.latitude",
+                            "longitude" : "$results.geo_asn.longitude",
+                            "timezone" : "$results.geo_asn.timezone"
                         },
                         "asn": {
                             "asn": "$results.geo_asn.asn",
@@ -167,12 +167,12 @@ const pipeline = [
                         "top": {
                             "$top": {
                                 "sortBy": { "timestamp": -1 }, // Sort by timestamp in descending order
-                                "output": {
-                                    "aggregate_probability": "$aggregate_probability",
-                                    "aggregate_description": "$aggregate_description",
-                                    "classification_results": "$classification_results"
-                                }
+                                "output": { "aggregate_probability": "$aggregate_probability", "aggregate_description": "$aggregate_description" }
                             }
+                        },
+                        // An array of arrays with the classification results
+                        "classification_results": {
+                            "$push": "$classification_results"
                         }
                     }
                 },
@@ -180,10 +180,23 @@ const pipeline = [
                     // Project the data to the final format
                     "$project": {
                         "_id": 1,
-                        // Push the values from the "top" object to the root
+                        // Push the aggregates from the "top" object to the root
                         "aggregate_probability": "$top.aggregate_probability",
                         "aggregate_description": "$top.aggregate_description",
-                        "classification_results": "$top.classification_results"
+                        // Reduce the array of arrays to a single array
+                        // (you also cannot use $concatArrays here)
+                        "classification_results": {
+                            "$reduce": {
+                                "input": "$classification_results",
+                                "initialValue": [],
+                                "in": {
+                                    "$concatArrays": [
+                                        "$$value",
+                                        "$$this"
+                                    ]
+                                }
+                            }
+                        }
                     }
                 }
             ],
@@ -257,4 +270,4 @@ const pipeline = [
 
 const materializedView = true;
 load('./common.js');
-makeView("domains", "dn_data", pipeline, materializedView);
+makeView("domains", "dn_data", pipeline, materializedView, true);

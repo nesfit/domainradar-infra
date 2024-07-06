@@ -334,4 +334,4 @@ const pipeline = [
 
 const materializedView = true;
 load('./common.js');
-makeView("all_raw_data", "dn_data", pipeline, materializedView);
+makeView("all_raw_data", "dn_data", pipeline, materializedView, false);
