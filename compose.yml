@@ -314,7 +314,7 @@ services:
       - mongo_master_password
     networks:
       db-network:
-        ipv4_address: 192.168.101.11
+        ipv4_address: 192.168.101.20
     environment:
       - AGGREGATION=mongo_result_aggregation_without_history.js
       - PERIOD_SEC=60
@@ -330,7 +330,7 @@ services:
       - mongo_master_password
     networks:
       db-network:
-        ipv4_address: 192.168.101.12
+        ipv4_address: 192.168.101.21
     environment:
       - AGGREGATION=mongo_input_all_data_aggregation.js
       - PERIOD_SEC=600
