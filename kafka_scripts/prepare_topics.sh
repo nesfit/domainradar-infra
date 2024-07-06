@@ -44,6 +44,7 @@ TOPICS=(to_process_zone $COLLECTOR_PARALLELISM \
         # These may also have more partitions to increase the scalability of the Connect sinks.
         classification_results 4 \
         filtered_input_domains 4 \
+        feature_vectors_json 1 \
         # These must have a single partition!
         configuration_change_requests 1 \
         configuration_states   1
