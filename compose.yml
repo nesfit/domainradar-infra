@@ -307,7 +307,7 @@ services:
     secrets:
       - postgres_master_password
       - postgres_prefilter_password
-      - postgres_ingestion_password
+      - postgres_controller_password
       - postgres_connect_password
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -330,7 +330,6 @@ services:
     restart: always
     secrets:
       - mongo_master_password
-      - mongo_ui_password
       - mongo_connect_password
     volumes:
       - mongo-data:/data/db
@@ -445,13 +444,11 @@ secrets:
     file: ./db/postgres/master.secret
   postgres_prefilter_password:
     file: ./db/postgres/prefilter.secret
-  postgres_ingestion_password:
-    file: ./db/postgres/ingestion.secret
+  postgres_controller_password:
+    file: ./db/postgres/controller.secret
   postgres_connect_password:
     file: ./db/postgres/connect.secret
   mongo_master_password:
     file: ./db/mongo/master.secret
-  mongo_ui_password:
-    file: ./db/mongo/ui.secret
   mongo_connect_password:
     file: ./db/mongo/connect.secret
