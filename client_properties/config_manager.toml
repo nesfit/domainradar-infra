@@ -11,13 +11,9 @@ client_key_password = "secret_client2_password"
 check_hostname = true
 
 [consumer]
-# Options passed directly to confluent-kafka and its underlying librdkafka library
-# The dotted keys must be enclosed in ""
-# See: https://github.com/confluentinc/librdkafka/blob/master/CONFIGURATION.md
 "session.timeout.ms" = 10000
 
 [producer]
-# Same as above
 "compression.codec" = "zstd"
 
 [manager]

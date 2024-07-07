@@ -14,7 +14,7 @@ check_hostname = true
 "compression.codec" = "zstd"
 
 [mongo]
-uri = "mongodb://mongo:27017"
+uri = "mongodb://admin:VGpSgso8FLmFut22K6SNgdWZbuikb7W3@mongo:27017/admin"
 db = "domainradar"
 write_batch_size = 100
 read_batch_size = 100
