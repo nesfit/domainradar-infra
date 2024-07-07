@@ -1,3 +1,23 @@
+x-base-collectors: 
+  python: &python-collector
+    restart: always
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    networks:
+      - kafka-clients
+      - collectors
+  java-cpc: &java-cpc-collector
+    restart: always
+    image: domrad/java-standalone
+    entrypoint: [ "java", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    networks:
+      - kafka-clients
+      - collectors
+
 services:
   kafka1:
     image: docker.io/apache/kafka:3.7.0
@@ -8,11 +28,13 @@ services:
       - kafka-truststore
       - kafka1-keystore
     networks:
-      kafka-client-network:
+      kafka-clients:
         ipv4_address: 192.168.100.2
         aliases: [ "kafka1" ]
+      kafka-outside-world:
+        ipv4_address: 192.168.103.250
     ports:
-      - "9093:9093"
+      - "31013:31013"
     env_file:
       - ./envs/kafka1_single.env
 
@@ -31,10 +53,12 @@ services:
       - kafka-truststore
       - client1-keystore
     networks:
-      kafka-client-network:
+      kafka-clients:
         ipv4_address: 192.168.100.10
         aliases: [ "kafka-connect" ]
-      db-network: {}
+      databases: {}
+      outside-world:
+        ipv4_address: 192.168.103.242
     ports:
       - "31002:8083"
     volumes:
@@ -49,8 +73,10 @@ services:
       - kafka-truststore
       - client1-keystore
     networks:
-      kafka-client-network:
+      kafka-clients:
         ipv4_address: 192.168.100.11
+      outside-world:
+        ipv4_address: 192.168.103.243
     ports:
       - "31000:8080"
     volumes:
@@ -70,7 +96,7 @@ services:
       - kafka-truststore
       - client1-keystore
     networks:
-      - kafka-client-network
+      - kafka-clients
     volumes:
       - ./client_properties/initializer.properties:/scripts/client.properties
     environment:
@@ -80,123 +106,84 @@ services:
       - UPDATE_EXISTING_TOPICS=0
 
   collector-zone:
+    <<: *python-collector
     image: domrad/zone
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
     secrets:
       - ca-cert
       - client2-cert
       - client2-key
-    networks:
-      - kafka-client-network
-      - collector-network
     volumes:
       - ./client_properties/zone.toml:/app/config.toml
     
   collector-dns:
+    <<: *python-collector
     image: domrad/dns
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
     secrets:
       - ca-cert
       - client2-cert
       - client2-key
-    networks:
-      - kafka-client-network
-      - collector-network
     volumes:
       - ./client_properties/dns.toml:/app/config.toml
 
   collector-tls:
-    image: domrad/java-standalone
-    entrypoint: [ "java", "-Djava.security.properties=/app/legacy.security", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
+    <<: *java-cpc-collector
+    entrypoint: [ "java", "-Djava.security.properties=/app/legacy.security", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
     command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
     secrets:
       - kafka-truststore
       - client2-keystore
-    networks:
-      - kafka-client-network
-      - collector-network
     volumes:
       - ./client_properties/tls.properties:/app/client.properties
+      - ./client_properties/log4j2.xml:/app/log4j2.xml
 
   collector-nerd:
-    image: domrad/java-standalone
+    <<: *java-cpc-collector
     command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
     secrets:
       - kafka-truststore
       - client2-keystore
-    networks:
-      - kafka-client-network
-      - collector-network
     volumes:
       - ./client_properties/nerd.properties:/app/client.properties
+      - ./client_properties/log4j2.xml:/app/log4j2.xml
 
   collector-geoip:
-    image: domrad/java-streams
-    command: [ "--col-geoip", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-geoip", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
+    <<: *java-cpc-collector
+    command: [ "--col-geo", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     secrets:
       - kafka-truststore
       - client2-keystore
-    networks:
-      - kafka-client-network
     volumes:
-      - ./client_properties/geoip.properties:/app/client.properties
       - ./geoip_data/:/app/geoip/
+      - ./client_properties/geoip.properties:/app/client.properties
+      - ./client_properties/log4j2.xml:/app/log4j2.xml
 
   collector-rdap-dn:
+    <<: *python-collector
     image: domrad/rdap-dn
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
     secrets:
       - ca-cert
       - client2-cert
       - client2-key
-    networks:
-      - kafka-client-network
-      - collector-network
     volumes:
       - ./client_properties/rdap_dn.toml:/app/config.toml
     
   collector-rdap-ip:
+    <<: *python-collector
     image: domrad/rdap-ip
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
     secrets:
       - ca-cert
       - client2-cert
       - client2-key
-    networks:
-      - kafka-client-network
-      - collector-network
     volumes:
       - ./client_properties/rdap_ip.toml:/app/config.toml
 
   collector-rtt:
+    <<: *python-collector
     image: domrad/rtt
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
     secrets:
       - ca-cert
       - client2-cert
       - client2-key
-    networks:
-      - kafka-client-network
-      - collector-network
     volumes:
       - ./client_properties/rtt.toml:/app/config.toml
     cap_add:
@@ -205,7 +192,8 @@ services:
 
   merger:
     image: domrad/java-streams
-    command: [ "--merger", "-t", "${THREADS:-4}", "-id", "${ID_PREFIX-domrad}-merger", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
+    entrypoint: [ "java", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.streams.StreamsPipelineRunner" ]
+    command: [ "--merger", "-id", "${ID_PREFIX-domrad}-merger", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -213,9 +201,11 @@ services:
       - kafka-truststore
       - client2-keystore
     networks:
-      - kafka-client-network
+      - kafka-clients
     volumes:
       - ./client_properties/merger.properties:/app/client.properties
+      - ./client_properties/log4j2.xml:/app/log4j2.xml
+      - streams-state-dir:/app/streams-state
 
   extractor:
     image: domrad/extractor
@@ -227,7 +217,7 @@ services:
       - client2-cert
       - client2-key
     networks:
-      - kafka-client-network
+      - kafka-clients
     volumes:
       - ./client_properties/extractor.toml:/app/config.toml
       - ./extractor_data/:/app/data/
@@ -251,9 +241,11 @@ services:
     ports:
       - "31010:5432"
     networks:
-      db-network:
+      databases:
         ipv4_address: 192.168.101.2
         aliases: [ "postgres" ]
+      outside-world:
+        ipv4_address: 192.168.103.244
 
   mongo:
     image: docker.io/mongo:7
@@ -272,12 +264,14 @@ services:
     ports:
       - "31011:27017"
     networks:
-      db-network:
+      databases:
         ipv4_address: 192.168.101.3
         aliases: [ "mongo" ]
+      outside-world:
+        ipv4_address: 192.168.103.245
 
-  mongo-domains-refresher:
-    build:
+  mongo-domains-refresher: &mongo-aggregation-service
+    build: 
       context: .
       dockerfile: ./dockerfiles/run_aggregation.Dockerfile
     restart: always
@@ -286,23 +280,16 @@ services:
     secrets:
       - mongo_master_password
     networks:
-      db-network:
+      databases:
         ipv4_address: 192.168.101.20
     environment:
       - AGGREGATION=results_without_classification_history.js
       - PERIOD_SEC=60
 
   mongo-raw-data-refresher:
-    build:
-      context: .
-      dockerfile: ./dockerfiles/run_aggregation.Dockerfile
-    restart: always
-    depends_on:
-      - mongo
-    secrets:
-      - mongo_master_password
+    <<: *mongo-aggregation-service
     networks:
-      db-network:
+      databases:
         ipv4_address: 192.168.101.21
     environment:
       - AGGREGATION=all_raw_data.js
@@ -313,25 +300,28 @@ volumes:
   postgres-data: {}
   mongo-data: {}
   kafka-connect-offsets: {}
+  streams-state-dir: {}
 
 networks:
-  kafka-client-network:
+  kafka-clients:
     driver: bridge
     enable_ipv6: false
+    internal: true
     ipam:
       config:
         - subnet: 192.168.100.0/24
           gateway: 192.168.100.1
           ip_range: 192.168.100.128/25
-  db-network:
+  databases:
     driver: bridge
     enable_ipv6: false
+    internal: true
     ipam:
       config:
         - subnet: 192.168.101.0/24
           gateway: 192.168.101.1
           ip_range: 192.168.101.128/25
-  collector-network:
+  collectors:
     driver: bridge
     enable_ipv6: true
     ipam:
@@ -340,6 +330,20 @@ networks:
           gateway: 192.168.102.1
           ip_range: 192.168.102.128/25
         - subnet: fd10:3456:789a:1::/64
+  outside-world:
+    driver: bridge
+    enable_ipv6: false
+    ipam:
+      config:
+        - subnet: 192.168.103.240/29
+          gateway: 192.168.103.241
+  kafka-outside-world:
+    driver: bridge
+    enable_ipv6: false
+    ipam:
+      config:
+        - subnet: 192.168.103.248/29
+          gateway: 192.168.103.249
 
 secrets:
   kafka-truststore:
