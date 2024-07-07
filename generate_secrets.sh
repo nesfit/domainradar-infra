@@ -33,7 +33,7 @@ cd "$SECRETS_DIR" || exit 1
 echo "Creating CA..."
 
 cd "$CA_KEYSTORE" || exit 1
-openssl req -x509 -config "../../openssl-ca.cnf" -newkey rsa:4096 -sha256 -nodes \
+openssl req -x509 -config "../../misc/openssl-ca.cnf" -newkey rsa:4096 -sha256 -nodes \
     -keyout "ca-key" -out "ca-cert" -passout "pass:$CA_PASSWORD" \
     -subj "/CN=RootCA/O=DomainRadar/L=Brno/C=CZ" -days "$CA_VALIDITY_DAYS"
 cd .. || exit
@@ -59,7 +59,7 @@ for ((i=1; i <= NUM_BROKERS; i++)); do
         -ext "SAN=DNS:kafka$i,DNS:kafka$i.domrad,DNS:feta4.fit.vutbr.cz,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
 
     cd "$CA_KEYSTORE" || exit 1
-    openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
+    openssl ca -batch -config ../../misc/openssl-ca.cnf -policy signing_policy -extensions signing_req \
         -days "$BROKER_KEY_VALIDITY_DAYS" -out "../kafka$i-cert-signed" -infiles "../kafka$i.csr"
     cd .. || exit
 
@@ -85,7 +85,7 @@ for ((i=1; i <= NUM_CLIENTS; i++)); do
     keytool -keystore "client$i.keystore.jks" -alias "client$i" -certreq -file "client$i.csr" -storepass "$CLIENT_PASSWORD" -keypass "$CLIENT_PASSWORD"
 
     cd "$CA_KEYSTORE" || exit 1
-    openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
+    openssl ca -batch -config ../../misc/openssl-ca.cnf -policy signing_policy -extensions signing_req \
         -days "$CLIENT_CERT_VALIDITY_DAYS" -out "../client$i-cert.pem" -infiles "../client$i.csr"
     cd .. || exit
 

@@ -118,7 +118,7 @@ echo "$EXISTING_TOPICS"
 echo "-------"
 
 top_len=${#TOPICS[@]}
-for (( i=0; i<$top_len; i=i+2 )); do
+for (( i=0; i<top_len; i=i+2 )); do
     topic="${TOPICS[$i]}";
     partitions="${TOPICS[$((i+1))]}";
 

@@ -60,18 +60,6 @@ services:
     environment:
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:9093
 
-  webui:
-    image: domrad/webui
-    depends_on:
-      - mongo
-    networks:
-      db-network:
-        ipv4_address: 192.168.101.11
-    ports:
-      - "31003:3784"
-    env_file:
-      - ./envs/webui.env
-
   initializer:
     build:
       context: .  # The root of the domainradar repo
@@ -227,7 +215,7 @@ services:
     networks:
       - kafka-client-network
     volumes:
-      - ./client_properties/mergers.properties:/app/client.properties
+      - ./client_properties/merger.properties:/app/client.properties
 
   extractor:
     image: domrad/extractor
@@ -243,21 +231,6 @@ services:
     volumes:
       - ./client_properties/extractor.toml:/app/config.toml
       - ./extractor_data/:/app/data/
-
-  classifier-unit:
-    image: domrad/classifier
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
-    secrets:
-      - ca-cert
-      - client2-cert
-      - client2-key
-    networks:
-      - kafka-client-network
-    volumes:
-      - ./client_properties/classifier_unit.toml:/app/config.toml
-      - ./clf_models/:/run/models/
 
   # --- Databases ---
 
@@ -334,16 +307,6 @@ services:
     environment:
       - AGGREGATION=all_raw_data.js
       - PERIOD_SEC=600
-
-  adminer:
-    build:
-      context: ./dockerfiles
-      dockerfile: adminer-mongo.Dockerfile
-    ports:
-      - "31001:8080"
-    networks:
-      db-network:
-        ipv4_address: 192.168.101.10
 
 volumes:
   kafka1-single-log: {}

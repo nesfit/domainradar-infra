@@ -24,7 +24,7 @@ keytool -keystore "$CLIENT_ID.keystore.jks" -alias "$CLIENT_ID" -validity $CLIEN
 keytool -keystore "$CLIENT_ID.keystore.jks" -alias "$CLIENT_ID" -certreq -file "$CLIENT_ID.csr" -storepass "$CLIENT_PASSWORD" -keypass "$CLIENT_PASSWORD"
 
 cd "$CA_KEYSTORE" || exit 1
-openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
+openssl ca -batch -config ../../misc/openssl-ca.cnf -policy signing_policy -extensions signing_req \
     -days "$CLIENT_CERT_VALIDITY_DAYS" -out "../$CLIENT_ID-cert.pem" -infiles "../$CLIENT_ID.csr"
 cd .. || exit
 
