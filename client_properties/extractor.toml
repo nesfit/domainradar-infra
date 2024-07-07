@@ -15,4 +15,8 @@ producer_compression_type = "zstd"
 
 [extractor]
 app_id = "domrad-extractor"
+batch_size = 50
+batch_timeout = 5
 data_dir = "/app/data"
+produce_jsons = true
+only_produce_jsons = false
