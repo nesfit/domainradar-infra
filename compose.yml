@@ -1,4 +1,4 @@
-x-base-collectors: 
+x-base-service-definitions: 
   python: &python-collector
     restart: always
     depends_on:
@@ -7,6 +7,7 @@ x-base-collectors:
     networks:
       - kafka-clients
       - collectors
+
   java-cpc: &java-cpc-collector
     restart: always
     image: domrad/java-standalone
@@ -18,27 +19,7 @@ x-base-collectors:
       - kafka-clients
       - collectors
 
-services:
-  kafka1:
-    image: docker.io/apache/kafka:3.7.0
-    hostname: kafka1
-    volumes:
-      - kafka1-single-log:/var/lib/kafka/data
-    secrets:
-      - kafka-truststore
-      - kafka1-keystore
-    networks:
-      kafka-clients:
-        ipv4_address: 192.168.100.2
-        aliases: [ "kafka1" ]
-      kafka-outside-world:
-        ipv4_address: 192.168.103.250
-    ports:
-      - "31013:31013"
-    env_file:
-      - ./envs/kafka1_single.env
-
-  kafka-connect:
+  kafka-connect: &connect-base
     build:
       context: .
       dockerfile: ./dockerfiles/kafka_connect.Dockerfile
@@ -65,6 +46,40 @@ services:
       - ./connect_properties/:/opt/kafka-connect/config/
       - kafka-connect-offsets:/tmp/kafka-connect
 
+services:
+  kafka1:
+    image: docker.io/apache/kafka:3.7.0
+    hostname: kafka1
+    volumes:
+      - kafka1-single-log:/var/lib/kafka/data
+    secrets:
+      - kafka-truststore
+      - kafka1-keystore
+    networks:
+      kafka-clients:
+        ipv4_address: 192.168.100.2
+        aliases: [ "kafka1" ]
+      kafka-outside-world:
+        ipv4_address: 192.168.103.250
+    ports:
+      - "31013:31013"
+    env_file:
+      - ./envs/kafka1_single.env
+
+  # Kafka Connect in the full configuration, including PostgreSQL
+  kafka-connect-full:
+    <<: *connect-base
+    profiles:
+      - full
+
+  # Kafka Connect without PostgreSQL, for use in the standalone collection scenarios
+  kafka-connect-without-postgres:
+    <<: *connect-base
+    profiles:
+      - colext
+      - col
+    command: "/opt/kafka/bin/connect-standalone.sh /opt/kafka-connect/config/1*.properties /opt/kafka-connect/config/2*.properties"
+
   kafka-ui:
     image: docker.io/provectuslabs/kafka-ui:latest
     depends_on:
@@ -88,7 +103,7 @@ services:
 
   initializer:
     build:
-      context: .  # The root of the domainradar repo
+      context: .
       dockerfile: ./dockerfiles/initializer.Dockerfile
     depends_on:
       - kafka1
@@ -191,6 +206,9 @@ services:
       - CAP_NET_ADMIN
 
   merger:
+    profiles:
+      - colext
+      - full
     image: domrad/java-streams
     entrypoint: [ "java", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.streams.StreamsPipelineRunner" ]
     command: [ "--merger", "-id", "${ID_PREFIX-domrad}-merger", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
@@ -208,6 +226,9 @@ services:
       - streams-state-dir:/app/streams-state
 
   extractor:
+    profiles:
+      - colext
+      - full
     image: domrad/extractor
     depends_on:
       initializer:
@@ -222,9 +243,30 @@ services:
       - ./client_properties/extractor.toml:/app/config.toml
       - ./extractor_data/:/app/data/
 
+  config-manager:
+    profiles:
+      - full
+    image: domrad/config-manager
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    user: root
+    secrets:
+      - ca-cert
+      - client2-cert
+      - client2-key
+    networks:
+      - kafka-clients
+    volumes:
+      - ./:/var/domainradar
+      - ./client_properties/config_manager.toml:/app/config.toml
+      - /var/run/docker.sock:/var/run/docker.sock
+
   # --- Databases ---
 
   postgres:
+    profiles:
+      - full
     image: docker.io/postgres:16
     restart: always
     secrets:
@@ -271,6 +313,8 @@ services:
         ipv4_address: 192.168.103.245
 
   mongo-domains-refresher: &mongo-aggregation-service
+    profiles:
+      - full
     build: 
       context: .
       dockerfile: ./dockerfiles/run_aggregation.Dockerfile
