@@ -28,8 +28,31 @@ x-base-service-definitions:
     networks:
       - kafka-clients
       - collectors
+   
+services:
+  kafka1:
+    image: docker.io/apache/kafka:3.7.0
+    hostname: kafka1
+    volumes:
+      - kafka1-single-log:/var/lib/kafka/data
+    secrets:
+      - kafka-truststore
+      - kafka1-keystore
+    networks:
+      kafka-clients:
+        ipv4_address: 192.168.100.2
+        aliases: [ "kafka1" ]
+      kafka-outside-world:
+        ipv4_address: 192.168.103.250
+    ports:
+      - "31013:31013"
+    env_file:
+      - ./envs/kafka1_single.env
 
-  kafka-connect: &connect-base
+  # Kafka Connect in the full configuration, including PostgreSQL
+  kafka-connect-full: &connect-base
+    profiles:
+      - full
     build:
       context: .
       dockerfile: ./dockerfiles/kafka_connect.Dockerfile
@@ -56,39 +79,18 @@ x-base-service-definitions:
       - ./connect_properties/:/opt/kafka-connect/config/
       - kafka-connect-offsets:/tmp/kafka-connect
 
-services:
-  kafka1:
-    image: docker.io/apache/kafka:3.7.0
-    hostname: kafka1
-    volumes:
-      - kafka1-single-log:/var/lib/kafka/data
-    secrets:
-      - kafka-truststore
-      - kafka1-keystore
-    networks:
-      kafka-clients:
-        ipv4_address: 192.168.100.2
-        aliases: [ "kafka1" ]
-      kafka-outside-world:
-        ipv4_address: 192.168.103.250
-    ports:
-      - "31013:31013"
-    env_file:
-      - ./envs/kafka1_single.env
-
-  # Kafka Connect in the full configuration, including PostgreSQL
-  kafka-connect-full:
-    <<: *connect-base
-    profiles:
-      - full
-
   # Kafka Connect without PostgreSQL, for use in the standalone collection scenarios
   kafka-connect-without-postgres:
     <<: *connect-base
     profiles:
       - colext
       - col
-    command: "/opt/kafka/bin/connect-standalone.sh /opt/kafka-connect/config/1*.properties /opt/kafka-connect/config/2*.properties"
+    command: ["/bin/bash", "-c", "/opt/kafka/bin/connect-standalone.sh /opt/kafka-connect/config/1*.properties /opt/kafka-connect/config/2*.properties"]
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+      mongo:
+        condition: service_started
 
   kafka-ui:
     image: docker.io/provectuslabs/kafka-ui:latest
@@ -280,8 +282,8 @@ services:
       - colext
     image: domrad/standalone-input
     depends_on:
-      initializer:
-        condition: service_completed_successfully
+      kafka1:
+        condition: service_started
       mongo:
         condition: service_started
     secrets:
