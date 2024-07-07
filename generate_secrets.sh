@@ -19,7 +19,7 @@ BROKER_PASSWORDS=("secret_broker1_password" "secret_broker2_password")
 SECRETS_DIR="secrets"
 CA_KEYSTORE="ca"
 
-BROKER_IPS=("192.168.100.2,IP:192.168.103.2" "192.168.100.3,IP:192.168.103.3")
+BROKER_IPS=("192.168.100.2,IP:192.168.103.250" "192.168.100.3,IP:192.168.103.251")
 
 echo "Making directories"
 

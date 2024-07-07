@@ -15,6 +15,11 @@ cd "$SECRETS_DIR" || exit 1
 CLIENT_ID="$1"
 CLIENT_PASSWORD="$2"
 
+if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_PASSWORD" ]; then
+    echo "Usage: ./generate_new_client_secret.sh <client name> <client password>"
+    exit 1
+fi
+
 echo "Creating $CLIENT_ID keystore and certificate..."
 
 keytool -keystore "$CLIENT_ID.keystore.jks" -alias "$CLIENT_ID" -validity $CLIENT_CERT_VALIDITY_DAYS -genkey \
