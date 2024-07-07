@@ -1,5 +1,14 @@
+x-scaling:
+  collectors: &scale-collectors
+    scale: ${COLLECTORS_SCALE:-1}
+  extractor: &scale-extractor
+    scale: ${EXTRACTOR_SCALE:-1}
+  merger: &scale-merger
+    scale: ${MERGER_SCALE:-1}
+
 x-base-service-definitions: 
   python: &python-collector
+    <<: *scale-collectors
     restart: always
     depends_on:
       initializer:
@@ -9,6 +18,7 @@ x-base-service-definitions:
       - collectors
 
   java-cpc: &java-cpc-collector
+    <<: *scale-collectors
     restart: always
     image: domrad/java-standalone
     entrypoint: [ "java", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
@@ -206,6 +216,7 @@ services:
       - CAP_NET_ADMIN
 
   merger:
+    <<: *scale-merger
     profiles:
       - colext
       - full
@@ -226,6 +237,7 @@ services:
       - streams-state-dir:/app/streams-state
 
   extractor:
+    <<: *scale-extractor
     profiles:
       - colext
       - full
@@ -245,7 +257,7 @@ services:
 
   config-manager:
     profiles:
-      - full
+      - configmanager
     image: domrad/config-manager
     depends_on:
       initializer:
@@ -258,9 +270,30 @@ services:
     networks:
       - kafka-clients
     volumes:
-      - ./:/var/domainradar
+      - ./client_properties/:/var/domainradar_properties/
       - ./client_properties/config_manager.toml:/app/config.toml
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/domrad_control.sock:/app/config_manager.sock
+
+  standalone-input:
+    profiles:
+      - col
+      - colext
+    image: domrad/standalone-input
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+      mongo:
+        condition: service_started
+    secrets:
+      - ca-cert
+      - client2-cert
+      - client2-key
+    networks:
+      - kafka-clients
+      - databases
+    volumes:
+      - ./client_properties/standalone_input.toml:/app/config.toml
+
 
   # --- Databases ---
 
