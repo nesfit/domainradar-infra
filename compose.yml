@@ -127,7 +127,7 @@ services:
     volumes:
       - ./client_properties/initializer.properties:/scripts/client.properties
     environment:
-      - BOOTSTRAP=kafka1:9093
+      - BOOTSTRAP=${BOOTSTRAP_SERVERS:-kafka1:9093}
       - COMMAND_CONFIG_FILE=/scripts/client.properties
       - EXTRA_SLEEP=0
       - UPDATE_EXISTING_TOPICS=0
@@ -155,7 +155,7 @@ services:
   collector-tls:
     <<: *java-cpc-collector
     entrypoint: [ "java", "-Djava.security.properties=/app/legacy.security", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
-    command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
+    command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
     secrets:
       - kafka-truststore
       - client2-keystore
@@ -165,7 +165,7 @@ services:
 
   collector-nerd:
     <<: *java-cpc-collector
-    command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
+    command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
     secrets:
       - kafka-truststore
       - client2-keystore
@@ -175,7 +175,7 @@ services:
 
   collector-geoip:
     <<: *java-cpc-collector
-    command: [ "--col-geo", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
+    command: [ "--col-geo", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
     secrets:
       - kafka-truststore
       - client2-keystore
@@ -223,8 +223,9 @@ services:
       - colext
       - full
     image: domrad/java-streams
-    entrypoint: [ "java", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.streams.StreamsPipelineRunner" ]
-    command: [ "--merger", "-id", "${ID_PREFIX-domrad}-merger", "-p", "/app/client.properties", "-s", "kafka1:9093" ]
+    entrypoint: "/bin/bash -c"
+    # use $$HOSTNAME to differentiate between multiple instances - this is not nice but the other solution (without Swarm) is to duplicate the service manually...
+    command: "\"/opt/java/openjdk/bin/java -Dlog4j2.configurationFile=file:log4j2.xml -cp /app/domainradar-collector.jar cz.vut.fit.domainradar.streams.StreamsPipelineRunner --merger -id ${ID_PREFIX-domrad}-merger -p /app/client.properties -s ${BOOTSTRAP_SERVERS:-kafka1:9093} -o state.dir=/app/streams-state/$$HOSTNAME\""
     depends_on:
       initializer:
         condition: service_completed_successfully
