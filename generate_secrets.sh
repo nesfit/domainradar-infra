@@ -13,6 +13,8 @@ TRUSTSTORE_PASSWORD="secret_truststore_password"
 
 NUM_CLIENTS=2
 NUM_BROKERS=2
+
+CLIENT_NAMES=("client1" "client2" "client3" "client4" "client5")
 CLIENT_PASSWORDS=("secret_client1_password" "secret_client2_password" "secret_client3_password" "secret_client4_password" "secret_client5_password")
 BROKER_PASSWORDS=("secret_broker1_password" "secret_broker2_password")
 
@@ -74,33 +76,34 @@ done
 
 # Generate client keypairs and certificates
 for ((i=1; i <= NUM_CLIENTS; i++)); do
-    echo "Creating client$i keystore and certificate..."
+    name="${CLIENT_NAMES[$i-1]}"
+    echo "Creating $name keystore and certificate..."
 
     CLIENT_PASSWORD="${CLIENT_PASSWORDS[$i-1]}"
 
-    keytool -keystore "client$i.keystore.jks" -alias "client$i" -validity $CLIENT_CERT_VALIDITY_DAYS -genkey \
+    keytool -keystore "$name.keystore.jks" -alias "$name" -validity $CLIENT_CERT_VALIDITY_DAYS -genkey \
         -keyalg RSA -storepass "$CLIENT_PASSWORD" -keypass "$CLIENT_PASSWORD" \
-        -dname "CN=client$i, OU=KafkaClients, O=DomainRadar, L=Brno, C=CZ"
+        -dname "CN=$name, OU=KafkaClients, O=DomainRadar, L=Brno, C=CZ"
 
-    keytool -keystore "client$i.keystore.jks" -alias "client$i" -certreq -file "client$i.csr" -storepass "$CLIENT_PASSWORD" -keypass "$CLIENT_PASSWORD"
+    keytool -keystore "$name.keystore.jks" -alias "$name" -certreq -file "$name.csr" -storepass "$CLIENT_PASSWORD" -keypass "$CLIENT_PASSWORD"
 
     cd "$CA_KEYSTORE" || exit 1
     openssl ca -batch -config ../../misc/openssl-ca.cnf -policy signing_policy -extensions signing_req \
-        -days "$CLIENT_CERT_VALIDITY_DAYS" -out "../client$i-cert.pem" -infiles "../client$i.csr"
+        -days "$CLIENT_CERT_VALIDITY_DAYS" -out "../$name-cert.pem" -infiles "../$name.csr"
     cd .. || exit
 
     # Import the CA certificate
-    keytool -keystore "client$i.keystore.jks" -alias CARoot -import -file "$CA_KEYSTORE/ca-cert" -storepass "$CLIENT_PASSWORD" -noprompt
+    keytool -keystore "$name.keystore.jks" -alias CARoot -import -file "$CA_KEYSTORE/ca-cert" -storepass "$CLIENT_PASSWORD" -noprompt
     # Import the signed clientcertificate
-    keytool -keystore "client$i.keystore.jks" -alias "client$i" -import -file "client$i-cert.pem" -storepass "$CLIENT_PASSWORD" -noprompt
+    keytool -keystore "$name.keystore.jks" -alias "$name" -import -file "$name-cert.pem" -storepass "$CLIENT_PASSWORD" -noprompt
     # Export to PKCS12 and then to PEM
-    keytool -importkeystore -srckeystore "client$i.keystore.jks" -srcstorepass "$CLIENT_PASSWORD" -destkeystore "client$i.keystore.p12" -deststoretype PKCS12 -deststorepass "$CLIENT_PASSWORD"
-    openssl pkcs12 -in "client$i.keystore.p12" -nocerts -out "client$i-priv-key.pem" -passin "pass:$CLIENT_PASSWORD" -passout "pass:$CLIENT_PASSWORD"
-    rm "client$i.keystore.p12"
+    keytool -importkeystore -srckeystore "$name.keystore.jks" -srcstorepass "$CLIENT_PASSWORD" -destkeystore "$name.keystore.p12" -deststoretype PKCS12 -deststorepass "$CLIENT_PASSWORD"
+    openssl pkcs12 -in "$name.keystore.p12" -nocerts -out "$name-priv-key.pem" -passin "pass:$CLIENT_PASSWORD" -passout "pass:$CLIENT_PASSWORD"
+    rm "$name.keystore.p12"
 
     rm ./*.csr
-    mkdir -p "secrets_client$i"
-    mv client$i* "secrets_client$i/"
+    mkdir -p "secrets_$name"
+    mv $name* "secrets_$name/"
 done
 
 OWNER="$(id -u):$(id -g)"
