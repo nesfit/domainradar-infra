@@ -1,6 +1,8 @@
 x-scaling:
-  collectors: &scale-collectors
-    scale: ${COLLECTORS_SCALE:-1}
+  collectors-python: &scale-py-collectors
+    scale: ${COLLECTORS_PY_SCALE:-1}
+  collectors-java-cpc: &scale-java-cpc-collectors
+    scale: ${COLLECTORS_JAVA_CPC_SCALE:-1}
   extractor: &scale-extractor
     scale: ${EXTRACTOR_SCALE:-1}
   merger: &scale-merger
@@ -8,7 +10,7 @@ x-scaling:
 
 x-base-service-definitions: 
   python: &python-collector
-    <<: *scale-collectors
+    <<: *scale-py-collectors
     restart: always
     depends_on:
       initializer:
@@ -18,7 +20,7 @@ x-base-service-definitions:
       - collectors
 
   java-cpc: &java-cpc-collector
-    <<: *scale-collectors
+    <<: *scale-java-cpc-collectors
     restart: always
     image: domrad/java-standalone
     entrypoint: [ "java", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
@@ -111,7 +113,7 @@ services:
     env_file:
       - ./envs/kafka_ui.env
     environment:
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:9093
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=${BOOTSTRAP_SERVERS:-kafka1:9093}
 
   initializer:
     build:
