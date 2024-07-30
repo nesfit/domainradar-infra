@@ -12,6 +12,7 @@ check_hostname = true
 
 [producer]
 "compression.codec" = "zstd"
+"queue.buffering.max.messages" = 1000000
 
 [mongo]
 uri = "mongodb://admin:VGpSgso8FLmFut22K6SNgdWZbuikb7W3@mongo:27017/admin"

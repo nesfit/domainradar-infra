@@ -10,14 +10,19 @@ client_key_file = "/run/secrets/client2-key"
 client_key_password = "secret_client2_password"
 check_hostname = true
 
-[faust]
+[dns.faust]
 producer_compression_type = "zstd"
 
 [dns]
 app_id = "domrad-dns"
+log_level = "TRACE"
+log_level_stderr = "TRACE"
 debug = false
 dns_servers = ["195.113.144.194", "195.113.144.233"]
 timeout = 5
 rotate_nameservers = true
 use_one_socket = true
 concurrency = 16
+
+[dns.consumer]
+max_poll_records = 50
