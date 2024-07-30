@@ -21,8 +21,9 @@ UPDATE_PARTITIONING=${UPDATE_PARTITIONING:-0}
 # data in parallel (more instances can be run, but they won't be assigned any processing tasks
 # unless some of the processing units fail).
 # At the same time, this controls how many processing tasks can be run in the Connect sinks.
-COLLECTOR_PARALLELISM=16
-MERGER_PARALLELISM=16
+COLLECTOR_PARALLELISM=4
+IP_COLLECTOR_PARALLELISM=4
+MERGER_PARALLELISM=4
 EXTRACTOR_PARALLELISM=4 
 CLASSIFIER_PARALLELISM=4
 
@@ -33,7 +34,7 @@ TOPICS=(to_process_zone $COLLECTOR_PARALLELISM \
         to_process_DNS  $COLLECTOR_PARALLELISM \
         to_process_TLS  $COLLECTOR_PARALLELISM \
         to_process_RDAP_DN $COLLECTOR_PARALLELISM \
-        to_process_IP   $COLLECTOR_PARALLELISM \
+        to_process_IP   $IP_COLLECTOR_PARALLELISM \
         processed_zone  $MERGER_PARALLELISM \
         processed_DNS   $MERGER_PARALLELISM \
         processed_TLS   $MERGER_PARALLELISM \
