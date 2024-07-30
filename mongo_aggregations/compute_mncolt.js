@@ -1,7 +1,16 @@
-var firstRecord = db.dn_data.findOne({"_id.collector": "zone"}, {"ts": "$_id.timestamp"}, {sort: {"_id.timestamp": 1}}).ts;
+const start = ISODate("2024-07-24T17:50Z");
+const stop =  ISODate("2024-07-26T06:00Z");
+
+var firstRecord = db.dn_data.findOne({"_id.collector": "zone", "_id.timestamp": 
+        { $gte: start, $lte: stop }}, {"ts": "$_id.timestamp"}, {sort: {"_id.timestamp": 1}}).ts;
 console.info(firstRecord);
 
 db.dn_data.aggregate([
+  {
+    $match: {
+      "_id.timestamp": { $gte: start, $lte: stop }
+    }
+  },
   {
     // Stage 1: Sort by domainName and timestamp
     $sort: { "_id.domainName": 1, "_id.timestamp": 1 }

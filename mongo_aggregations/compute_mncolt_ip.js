@@ -1,10 +1,14 @@
 const phase = 3;
+const start = ISODate("2024-07-24T17:50Z");
+const stop =  ISODate("2024-07-26T06:00Z");
+const stopExt = ISODate("2024-07-26T06:05Z");
 
 if (phase == 0)
 db.getCollection("dn_data").aggregate([
     {
         $match: {
-            "_id.collector": "dns"
+            "_id.collector": "dns",
+            "_id.timestamp": { $gte: start, $lte: stop }
         }
     },
     {
@@ -25,6 +29,11 @@ db.getCollection("tmp_dn_data_dns_only").createIndex({"ts": 1}, {unique: false})
 
 if (phase == 2)
 db.getCollection("ip_data").aggregate([
+  {
+    $match: {
+      "_id.timestamp": { $gte: start, $lte: stopExt }
+    }
+  },
   {
     // Find the closest DNS result
     $lookup: {
