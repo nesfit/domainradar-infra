@@ -95,7 +95,7 @@ services:
         condition: service_started
 
   kafka-ui:
-    image: docker.io/provectuslabs/kafka-ui:latest
+    image: ghcr.io/kafbat/kafka-ui:latest
     depends_on:
       - kafka1
     secrets:
