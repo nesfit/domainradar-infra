@@ -397,6 +397,7 @@ services:
     secrets:
       - mongo_master_password
       - mongo_connect_password
+      - mongo_ui_password
     volumes:
       - mongo-data:/data/db
       - ./db/mongo/init/:/docker-entrypoint-initdb.d/
@@ -411,33 +412,6 @@ services:
         aliases: [ "mongo" ]
       outside-world:
         ipv4_address: 192.168.103.21
-
-  # mongo-domains-refresher: &mongo-aggregation-service
-  #   profiles:
-  #     - full
-  #   build: 
-  #     context: .
-  #     dockerfile: ./dockerfiles/run_aggregation.Dockerfile
-  #   restart: always
-  #   depends_on:
-  #     - mongo
-  #   secrets:
-  #     - mongo_master_password
-  #   networks:
-  #     databases:
-  #       ipv4_address: 192.168.101.20
-  #   environment:
-  #     - AGGREGATION=results_without_classification_history.js
-  #     - PERIOD_SEC=60
-
-  # mongo-raw-data-refresher:
-  #   <<: *mongo-aggregation-service
-  #   networks:
-  #     databases:
-  #       ipv4_address: 192.168.101.21
-  #   environment:
-  #     - AGGREGATION=all_raw_data.js
-  #     - PERIOD_SEC=600
 
 volumes:
   kafka1-single-log: {}
