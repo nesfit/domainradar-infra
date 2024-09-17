@@ -32,16 +32,16 @@ clone_or_pull "$UI_DIR" "domainradar-ui"
 cd ..
 
 echo "Building the domrad/prefilter image"
-docker build -f prefilter.Dockerfile -t domrad/prefilter .
-
-echo "Building the pipeline images"
-cd "$BUILD_DIR/$COLEXT_DIR" || exit 1
-./build_images.sh
-cd ../..
+docker build -f prefilter.Dockerfile -t domrad/loader .
 
 echo "Building the domrad/webui image"
 cd "$BUILD_DIR/$UI_DIR" || exit 1
 docker build -t domrad/webui .
+cd ../..
+
+echo "Building the pipeline images"
+cd "$BUILD_DIR/$COLEXT_DIR" || exit 1
+./build_images.sh
 cd ../..
 
 if [ "${DELETE_CLONED:-0}" = "1" ]; then

@@ -61,7 +61,7 @@ You can use a provided script to clone and build all the images at once.
 Alternatively, you can build the individual images by hand:
 
 1. Clone the [domainradar-colext](https://github.com/nesfit/domainradar-colext/) repo. Follow its README to build the images!
-2. Clone the [domainradar-input](https://github.com/nesfit/domainradar-input) repo and use [*dockerfiles/prefilter.Dockerfile*](./dockerfiles/prefilter.Dockerfile) to build it. Tag it with `domrad/prefilter`.
+2. Clone the [domainradar-input](https://github.com/nesfit/domainradar-input) repo and use [*dockerfiles/prefilter.Dockerfile*](./dockerfiles/prefilter.Dockerfile) to build it. Tag it with `domrad/loader`.
 3. Clone the [domainradar-ui](https://github.com/nesfit/domainradar-ui) repo and use the Dockerfile included in it to build the webui image. Tag it with `domrad/webui`.
 
 ### Scaling

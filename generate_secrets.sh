@@ -11,11 +11,11 @@ CLIENT_CERT_VALIDITY_DAYS=365
 CA_PASSWORD="secret_ca_password"
 TRUSTSTORE_PASSWORD="secret_truststore_password"
 
-NUM_CLIENTS=2
+NUM_CLIENTS=4
 NUM_BROKERS=2
 
-CLIENT_NAMES=("client1" "client2" "client3" "client4" "client5")
-CLIENT_PASSWORDS=("secret_client1_password" "secret_client2_password" "secret_client3_password" "secret_client4_password" "secret_client5_password")
+CLIENT_NAMES=("client1" "client2" "loader" "webui")
+CLIENT_PASSWORDS=("secret_client1_password" "secret_client2_password" "secret_loader_password" "secret_webui_password")
 BROKER_PASSWORDS=("secret_broker1_password" "secret_broker2_password")
 
 SECRETS_DIR="secrets"

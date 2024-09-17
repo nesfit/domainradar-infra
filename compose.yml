@@ -1,3 +1,4 @@
+name: drtest
 x-scaling:
   collectors-python: &scale-py-collectors
     scale: ${COLLECTORS_PY_SCALE:-1}
@@ -5,6 +6,8 @@ x-scaling:
     scale: ${COLLECTORS_JAVA_CPC_SCALE:-1}
   extractor: &scale-extractor
     scale: ${EXTRACTOR_SCALE:-1}
+  classifier: &scale-classifier
+    scale: ${CLASSIFIER_SCALE:-1}
   merger: &scale-merger
     scale: ${MERGER_SCALE:-1}
 
@@ -74,7 +77,7 @@ services:
         aliases: [ "kafka-connect" ]
       databases: {}
       outside-world:
-        ipv4_address: 192.168.103.242
+        ipv4_address: 192.168.103.10
     ports:
       - "31002:8083"
     volumes:
@@ -105,7 +108,7 @@ services:
       kafka-clients:
         ipv4_address: 192.168.100.11
       outside-world:
-        ipv4_address: 192.168.103.243
+        ipv4_address: 192.168.103.11
     ports:
       - "31000:8080"
     volumes:
@@ -133,6 +136,47 @@ services:
       - COMMAND_CONFIG_FILE=/scripts/client.properties
       - EXTRA_SLEEP=0
       - UPDATE_EXISTING_TOPICS=0
+
+  loader:
+    profiles:
+      - full
+      - colext
+      - col
+    image: domrad/loader
+    restart: always
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+    networks:
+      - kafka-clients
+      - databases
+      - outside-world
+    volumes:
+      - ./secrets/secrets_loader/:/app/secrets
+      - ./misc/testing_domains.txt:/app/sample.txt
+    env_file:
+      - ./envs/loader.env
+
+  webui:
+    profiles:
+      - full
+    image: domrad/webui
+    restart: always
+    depends_on:
+      - mongo
+      - kafka1
+    networks:
+      - kafka-clients
+      - databases
+      - outside-world
+    ports:
+      - "31003:31003"
+    volumes:
+      - ./secrets/secrets_webui/:/app/kafka-ssl
+    env_file:
+      - ./envs/webui.env
 
   collector-zone:
     <<: *python-collector
@@ -260,6 +304,24 @@ services:
       - ./client_properties/extractor.toml:/app/config.toml
       - ./extractor_data/:/app/data/
 
+  classifier:
+    <<: *scale-classifier
+    profiles:
+        - full
+    image: domrad/classifier
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    secrets:
+      - ca-cert
+      - client2-cert
+      - client2-key
+    networks:
+      - kafka-clients
+    volumes:
+      - ./client_properties/classifier_unit.toml:/app/config.toml
+      - /opt/domainradar/future/colext/python_pipeline/classifier/domainradar-clf/classifiers/:/run/models/
+
   config-manager:
     profiles:
       - configmanager
@@ -326,7 +388,7 @@ services:
         ipv4_address: 192.168.101.2
         aliases: [ "postgres" ]
       outside-world:
-        ipv4_address: 192.168.103.244
+        ipv4_address: 192.168.103.20
 
   mongo:
     image: docker.io/mongo:7
@@ -348,34 +410,34 @@ services:
         ipv4_address: 192.168.101.3
         aliases: [ "mongo" ]
       outside-world:
-        ipv4_address: 192.168.103.245
+        ipv4_address: 192.168.103.21
 
-  mongo-domains-refresher: &mongo-aggregation-service
-    profiles:
-      - full
-    build: 
-      context: .
-      dockerfile: ./dockerfiles/run_aggregation.Dockerfile
-    restart: always
-    depends_on:
-      - mongo
-    secrets:
-      - mongo_master_password
-    networks:
-      databases:
-        ipv4_address: 192.168.101.20
-    environment:
-      - AGGREGATION=results_without_classification_history.js
-      - PERIOD_SEC=60
+  # mongo-domains-refresher: &mongo-aggregation-service
+  #   profiles:
+  #     - full
+  #   build: 
+  #     context: .
+  #     dockerfile: ./dockerfiles/run_aggregation.Dockerfile
+  #   restart: always
+  #   depends_on:
+  #     - mongo
+  #   secrets:
+  #     - mongo_master_password
+  #   networks:
+  #     databases:
+  #       ipv4_address: 192.168.101.20
+  #   environment:
+  #     - AGGREGATION=results_without_classification_history.js
+  #     - PERIOD_SEC=60
 
-  mongo-raw-data-refresher:
-    <<: *mongo-aggregation-service
-    networks:
-      databases:
-        ipv4_address: 192.168.101.21
-    environment:
-      - AGGREGATION=all_raw_data.js
-      - PERIOD_SEC=600
+  # mongo-raw-data-refresher:
+  #   <<: *mongo-aggregation-service
+  #   networks:
+  #     databases:
+  #       ipv4_address: 192.168.101.21
+  #   environment:
+  #     - AGGREGATION=all_raw_data.js
+  #     - PERIOD_SEC=600
 
 volumes:
   kafka1-single-log: {}
@@ -417,8 +479,8 @@ networks:
     enable_ipv6: false
     ipam:
       config:
-        - subnet: 192.168.103.240/29
-          gateway: 192.168.103.241
+        - subnet: 192.168.103.0/25
+          gateway: 192.168.103.1
   kafka-outside-world:
     driver: bridge
     enable_ipv6: false
@@ -456,3 +518,5 @@ secrets:
     file: ./db/mongo/master.secret
   mongo_connect_password:
     file: ./db/mongo/connect.secret
+  mongo_ui_password:
+    file: ./db/mongo/ui.secret
