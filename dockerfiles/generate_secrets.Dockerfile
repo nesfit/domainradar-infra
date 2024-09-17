@@ -4,6 +4,7 @@ ARG GID
 
 WORKDIR /pipeline-all-in-one
 COPY generate_secrets.sh .
+COPY generate_new_client_secret.sh .
 COPY misc/openssl-ca.cnf misc/openssl-ca.cnf
 
 RUN touch /.rnd && chown ${UID}:${GID} /.rnd
