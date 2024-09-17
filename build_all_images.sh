@@ -2,7 +2,7 @@
 
 BUILD_DIR=image_build
 COLEXT_DIR="domainradar-colext"
-# INPUT_DIR="domainradar-input"
+INPUT_DIR="domainradar-input"
 CLF_DIR="domainradar-clf"
 UI_DIR="domainradar-ui"
 
@@ -23,30 +23,26 @@ clone_or_pull() {
 }
 
 clone_or_pull "$COLEXT_DIR" "domainradar-colext"
-# clone_or_pull "$INPUT_DIR" "domainradar-input"
+cd "$COLEXT_DIR"/python_pipeline
 clone_or_pull "$CLF_DIR" "domainradar-clf"
-clone_or_pull "$UI_DIR" "domainradar-ui"
+cd ../..
 
+clone_or_pull "$INPUT_DIR" "domainradar-input"
+clone_or_pull "$UI_DIR" "domainradar-ui"
 cd ..
 
-# echo "Building the domrad/prefilter image"
-# docker build -f prefilter.Dockerfile -t domrad/prefilter .
+echo "Building the domrad/prefilter image"
+docker build -f prefilter.Dockerfile -t domrad/prefilter .
 
 echo "Building the pipeline images"
 cd "$BUILD_DIR/$COLEXT_DIR" || exit 1
-./build_docker_images.sh
+./build_images.sh
 cd ../..
 
 echo "Building the domrad/webui image"
 cd "$BUILD_DIR/$UI_DIR" || exit 1
 docker build -t domrad/webui .
 cd ../..
-
-echo "Copying models"
-rm -rf ../clf_models
-mkdir -p ../clf_models
-cp -r "$BUILD_DIR/$CLF_DIR/classifiers/models" ../clf_models/models
-cp -r "$BUILD_DIR/$CLF_DIR/classifiers/boundaries" ../clf_models/boundaries
 
 if [ "${DELETE_CLONED:-0}" = "1" ]; then
   rm -rf image_build
