@@ -7,9 +7,7 @@ CLF_DIR="domainradar-clf"
 UI_DIR="domainradar-ui"
 
 cd dockerfiles || exit 1
-
 mkdir -p "$BUILD_DIR"
-cd "$BUILD_DIR" || exit 1
 
 clone_or_pull() {
   if [ -d "$1" ]; then
@@ -22,14 +20,18 @@ clone_or_pull() {
   fi
 }
 
-clone_or_pull "$COLEXT_DIR" "domainradar-colext"
-cd "$COLEXT_DIR"/python_pipeline
-clone_or_pull "$CLF_DIR" "domainradar-clf"
-cd ../..
+if [ "$1" != "--no-pull" ]; then
+  cd "$BUILD_DIR" || exit 1
 
-clone_or_pull "$INPUT_DIR" "domainradar-input"
-clone_or_pull "$UI_DIR" "domainradar-ui"
-cd ..
+  clone_or_pull "$COLEXT_DIR" "domainradar-colext"
+  cd "$COLEXT_DIR"/python_pipeline
+  clone_or_pull "$CLF_DIR" "domainradar-clf"
+  cd ../..
+
+  clone_or_pull "$INPUT_DIR" "domainradar-input"
+  clone_or_pull "$UI_DIR" "domainradar-ui"
+  cd ..
+fi
 
 echo "Building the domrad/prefilter image"
 docker build -f prefilter.Dockerfile -t domrad/loader .
