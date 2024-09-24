@@ -1,4 +1,4 @@
-FROM docker.io/apache/kafka:3.7.0
+FROM docker.io/apache/kafka:3.7.1
 
 WORKDIR /scripts
 USER root
