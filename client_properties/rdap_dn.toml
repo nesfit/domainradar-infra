@@ -10,7 +10,7 @@ client_key_file = "/run/secrets/client2-key"
 client_key_password = "secret_client2_password"
 check_hostname = true
 
-[faust]
+[rdap_dn.faust]
 producer_compression_type = "zstd"
 
 [rdap_dn]

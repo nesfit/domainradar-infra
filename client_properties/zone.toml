@@ -10,12 +10,12 @@ client_key_file = "/run/secrets/client2-key"
 client_key_password = "secret_client2_password"
 check_hostname = true
 
-[faust]
+[zone.faust]
 producer_compression_type = "zstd"
 
 [zone]
 app_id = "domrad-zone"
-debug = false
+debug = true
 dns_servers = ["195.113.144.194", "195.113.144.233"]
 timeout = 4
 rotate_nameservers = true
