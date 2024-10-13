@@ -55,7 +55,7 @@ services:
       - ./envs/kafka1_single.env
 
   # Kafka Connect in the full configuration, including PostgreSQL
-  kafka-connect-full: &connect-base
+  kafka-connect: &connect-base
     profiles:
       - full
     build:
@@ -65,8 +65,6 @@ services:
       initializer:
         condition: service_completed_successfully
       postgres:
-        condition: service_started
-      mongo:
         condition: service_started
     secrets:
       - kafka-truststore
@@ -85,7 +83,7 @@ services:
       - kafka-connect-offsets:/tmp/kafka-connect
 
   # Kafka Connect without PostgreSQL, for use in the standalone collection scenarios
-  kafka-connect-without-postgres:
+  kafka-connect-standalone:
     <<: *connect-base
     profiles:
       - colext
@@ -165,6 +163,7 @@ services:
     image: domrad/webui
     restart: always
     depends_on:
+    # TODO: Remove mongo
       - mongo
       - kafka1
     networks:
@@ -239,7 +238,7 @@ services:
       - client2-key
     volumes:
       - ./client_properties/rdap_dn.toml:/app/config.toml
-    
+
   collector-rdap-ip:
     <<: *python-collector
     image: domrad/rdap-ip
@@ -263,28 +262,6 @@ services:
       - CAP_NET_RAW
       - CAP_NET_ADMIN
 
-  merger:
-    <<: *scale-merger
-    profiles:
-      - colext
-      - full
-    image: domrad/java-streams
-    entrypoint: "/bin/bash -c"
-    # use $$HOSTNAME to differentiate between multiple instances - this is not nice but the other solution (without Swarm) is to duplicate the service manually...
-    command: "\"/opt/java/openjdk/bin/java -Dlog4j2.configurationFile=file:log4j2.xml -cp /app/domainradar-collector.jar cz.vut.fit.domainradar.streams.StreamsPipelineRunner --merger -id ${ID_PREFIX-domrad}-merger -p /app/client.properties -s ${BOOTSTRAP_SERVERS:-kafka1:9093} -o state.dir=/app/streams-state/$$HOSTNAME\""
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
-    secrets:
-      - kafka-truststore
-      - client2-keystore
-    networks:
-      - kafka-clients
-    volumes:
-      - ./client_properties/merger.properties:/app/client.properties
-      - ./client_properties/log4j2.xml:/app/log4j2.xml
-      - streams-state-dir:/app/streams-state
-
   extractor:
     <<: *scale-extractor
     profiles:
@@ -300,6 +277,7 @@ services:
       - client2-key
     networks:
       - kafka-clients
+      - outside-world
     volumes:
       - ./client_properties/extractor.toml:/app/config.toml
       - ./extractor_data/:/app/data/
@@ -418,7 +396,6 @@ volumes:
   postgres-data: {}
   mongo-data: {}
   kafka-connect-offsets: {}
-  streams-state-dir: {}
 
 networks:
   kafka-clients:
