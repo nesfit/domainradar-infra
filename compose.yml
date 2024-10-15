@@ -353,6 +353,7 @@ services:
       - postgres_prefilter_password
       - postgres_controller_password
       - postgres_connect_password
+      - postgres_webui_password
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./db/postgres/init/:/docker-entrypoint-initdb.d/
@@ -375,7 +376,6 @@ services:
     secrets:
       - mongo_master_password
       - mongo_connect_password
-      - mongo_ui_password
     volumes:
       - mongo-data:/data/db
       - ./db/mongo/init/:/docker-entrypoint-initdb.d/
@@ -465,9 +465,9 @@ secrets:
     file: ./db/postgres/controller.secret
   postgres_connect_password:
     file: ./db/postgres/connect.secret
+  postgres_webui_password:
+    file: ./db/postgres/webui.secret
   mongo_master_password:
     file: ./db/mongo/master.secret
   mongo_connect_password:
     file: ./db/mongo/connect.secret
-  mongo_ui_password:
-    file: ./db/mongo/ui.secret
