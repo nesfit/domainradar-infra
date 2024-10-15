@@ -8,8 +8,8 @@ x-scaling:
     scale: ${EXTRACTOR_SCALE:-1}
   classifier: &scale-classifier
     scale: ${CLASSIFIER_SCALE:-1}
-  merger: &scale-merger
-    scale: ${MERGER_SCALE:-1}
+  flink-taskmanager: &scale-taskmanager
+    scale: ${FLINK_TASKMANAGER_SCALE:-1}
 
 x-base-service-definitions: 
   python: &python-collector
@@ -35,6 +35,9 @@ x-base-service-definitions:
       - collectors
    
 services:
+
+  # --- General infrastructure --- #
+
   kafka1:
     image: docker.io/apache/kafka:3.7.0
     hostname: kafka1
@@ -82,7 +85,7 @@ services:
       - ./connect_properties/:/opt/kafka-connect/config/
       - kafka-connect-offsets:/tmp/kafka-connect
 
-  # Kafka Connect without PostgreSQL, for use in the standalone collection scenarios
+  # Kafka Connect without PostgreSQL, for use in the standalone collection scenarios only
   kafka-connect-standalone:
     <<: *connect-base
     profiles:
@@ -177,6 +180,48 @@ services:
     env_file:
       - ./envs/webui.env
 
+  config-manager:
+    profiles:
+      - configmanager
+    image: domrad/config-manager
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+    user: root
+    secrets:
+      - ca-cert
+      - client2-cert
+      - client2-key
+    networks:
+      - kafka-clients
+    volumes:
+      - ./client_properties/:/var/domainradar_properties/
+      - ./client_properties/config_manager.toml:/app/config.toml
+      - /tmp/domrad_control.sock:/app/config_manager.sock
+
+  standalone-input:
+    profiles:
+      - col
+      - colext
+    image: domrad/standalone-input
+    depends_on:
+      kafka1:
+        condition: service_started
+      mongo:
+        condition: service_started
+    secrets:
+      - ca-cert
+      - client2-cert
+      - client2-key
+    networks:
+      - kafka-clients
+      - databases
+    volumes:
+      - ./client_properties/standalone_input.toml:/app/config.toml
+      - ./misc/testing_domains.txt:/app/sample.txt
+
+  # --- Collectors --- #
+
   collector-zone:
     <<: *python-collector
     image: domrad/zone
@@ -262,6 +307,8 @@ services:
       - CAP_NET_RAW
       - CAP_NET_ADMIN
 
+  # --- Extractor and classifier #
+
   extractor:
     <<: *scale-extractor
     profiles:
@@ -300,48 +347,7 @@ services:
       - ./client_properties/classifier_unit.toml:/app/config.toml
       - /opt/domainradar/future/colext/python_pipeline/classifier/domainradar-clf/classifiers/:/run/models/
 
-  config-manager:
-    profiles:
-      - configmanager
-    image: domrad/config-manager
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
-    user: root
-    secrets:
-      - ca-cert
-      - client2-cert
-      - client2-key
-    networks:
-      - kafka-clients
-    volumes:
-      - ./client_properties/:/var/domainradar_properties/
-      - ./client_properties/config_manager.toml:/app/config.toml
-      - /tmp/domrad_control.sock:/app/config_manager.sock
-
-  standalone-input:
-    profiles:
-      - col
-      - colext
-    image: domrad/standalone-input
-    depends_on:
-      kafka1:
-        condition: service_started
-      mongo:
-        condition: service_started
-    secrets:
-      - ca-cert
-      - client2-cert
-      - client2-key
-    networks:
-      - kafka-clients
-      - databases
-    volumes:
-      - ./client_properties/standalone_input.toml:/app/config.toml
-      - ./misc/testing_domains.txt:/app/sample.txt
-
-
-  # --- Databases ---
+  # --- Databases --- #
 
   postgres:
     profiles:
@@ -391,11 +397,62 @@ services:
       outside-world:
         ipv4_address: 192.168.103.21
 
+  # --- Flink --- #
+
+  fl-jobmanager:
+    image: flink:1.19.1-scala_2.12-java17
+    ports:
+     - "31020:8081"
+    command: ["standalone-job", "--job-classname", "cz.vut.fit.domainradar.DataStreamJob",
+     "--jars", "/opt/flink/usrlib/merger-flink-1.0-SNAPSHOT.jar", "--", "/opt/merger-flink.properties"]
+    # --fromSavepoint /path/to/savepoint --allowNonRestoredState
+    volumes:
+      - ./merger_build/:/opt/flink/usrlib
+      - ./client_properties/merger-flink.properties:/opt/merger-flink.properties
+      - flink-data:/flink-data/
+      - type: tmpfs
+        target: /flink-tmp
+        read_only: false
+        tmpfs:
+          size: "2147483648"
+          mode: 0777
+    secrets:
+      - kafka-truststore
+      - client2-keystore
+    env_file: ./envs/flink.env
+    networks:
+      kafka-clients: {}
+      outside-world: {}
+
+  fl-taskmanager:
+    <<: *scale-taskmanager
+    image: flink:1.19.1-scala_2.12-java17
+    depends_on:
+      - fl-jobmanager
+    command: taskmanager
+    volumes:
+      - ./merger_build/:/opt/flink/usrlib
+      - ./client_properties/merger-flink.properties:/opt/merger-flink.properties
+      - flink-data:/flink-data/
+      - type: tmpfs
+        target: /flink-tmp
+        read_only: false
+        tmpfs:
+          size: "2147483648"
+          mode: 0777
+    secrets:
+      - kafka-truststore
+      - client2-keystore
+    env_file: ./envs/flink.env
+    networks:
+      kafka-clients: {}
+
 volumes:
   kafka1-single-log: {}
   postgres-data: {}
   mongo-data: {}
   kafka-connect-offsets: {}
+  flink-data: {}
 
 networks:
   kafka-clients:
