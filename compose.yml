@@ -91,7 +91,7 @@ services:
     profiles:
       - colext
       - col
-    command: ["/bin/bash", "-c", "/opt/kafka/bin/connect-standalone.sh /opt/kafka-connect/config/1*.properties /opt/kafka-connect/config/2*.properties"]
+    command: ["/bin/bash", "-c", "/opt/kafka/bin/connect-standalone.sh /opt/kafka-connect/config/1*.properties /opt/kafka-connect/config/mongo/*.properties"]
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -166,8 +166,6 @@ services:
     image: domrad/webui
     restart: always
     depends_on:
-    # TODO: Remove mongo
-      - mongo
       - kafka1
     networks:
       - kafka-clients
@@ -375,7 +373,11 @@ services:
       outside-world:
         ipv4_address: 192.168.103.20
 
+  # MongoDB is only used for standalone collection
   mongo:
+    profiles:
+      - col
+      - colext
     image: docker.io/mongo:7
     command: --config /etc/mongod.conf
     restart: always
@@ -400,14 +402,16 @@ services:
   # --- Flink --- #
 
   fl-jobmanager:
-    image: flink:1.19.1-scala_2.12-java17
+    profiles:
+      - full
+      - colext
+    image: domrad/merger-flink
     ports:
      - "31020:8081"
     command: ["standalone-job", "--job-classname", "cz.vut.fit.domainradar.DataStreamJob",
-     "--jars", "/opt/flink/usrlib/merger-flink-1.0-SNAPSHOT.jar", "--", "/opt/merger-flink.properties"]
+      "--", "/opt/merger-flink.properties"]
     # --fromSavepoint /path/to/savepoint --allowNonRestoredState
     volumes:
-      - ./merger_build/:/opt/flink/usrlib
       - ./client_properties/merger-flink.properties:/opt/merger-flink.properties
       - flink-data:/flink-data/
       - type: tmpfs
@@ -426,12 +430,14 @@ services:
 
   fl-taskmanager:
     <<: *scale-taskmanager
-    image: flink:1.19.1-scala_2.12-java17
+    profiles:
+      - full
+      - colext
+    image: domrad/merger-flink
     depends_on:
       - fl-jobmanager
     command: taskmanager
     volumes:
-      - ./merger_build/:/opt/flink/usrlib
       - ./client_properties/merger-flink.properties:/opt/merger-flink.properties
       - flink-data:/flink-data/
       - type: tmpfs
