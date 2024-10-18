@@ -239,19 +239,19 @@ BEGIN
                 geo_region_code          = p_data ->> 'regionCode',
                 geo_city                 = p_data ->> 'city',
                 geo_postal_code          = p_data ->> 'postalCode',
-                geo_latitude             = (p_data -> 'latitude')::DOUBLE PRECISION,
-                geo_longitude            = (p_data -> 'longitude')::DOUBLE PRECISION,
+                geo_latitude             = NULLIF(p_data -> 'latitude', 'null'::jsonb)::DOUBLE PRECISION,
+                geo_longitude            = NULLIF(p_data -> 'longitude', 'null'::jsonb)::DOUBLE PRECISION,
                 geo_timezone             = p_data ->> 'timezone',
-                asn                      = (p_data -> 'asn')::BIGINT,
+                asn                      = NULLIF(p_data -> 'asn', 'null'::jsonb)::BIGINT,
                 as_org                   = p_data ->> 'asnOrg',
                 network_address          = p_data ->> 'networkAddress',
-                network_prefix_length    = (p_data -> 'prefixLength')::INTEGER,
+                network_prefix_length    = NULLIF(p_data -> 'prefixLength', 'null'::jsonb)::INTEGER,
                 geo_asn_update_timestamp = p_timestamp
             WHERE id = p_ip_id
               AND (geo_asn_update_timestamp IS NULL OR geo_asn_update_timestamp <= p_timestamp);
         ELSIF p_collector_name = 'nerd' THEN
             UPDATE IP
-            SET nerd_reputation       = (p_data -> 'data' -> 'reputation')::DOUBLE PRECISION,
+            SET nerd_reputation       = NULLIF(p_data -> 'data' -> 'reputation', 'null'::jsonb)::DOUBLE PRECISION,
                 nerd_update_timestamp = p_timestamp
             WHERE id = p_ip_id
               AND (nerd_update_timestamp IS NULL OR nerd_update_timestamp <= p_timestamp);
@@ -397,39 +397,48 @@ BEGIN
     -- Loop through each classification_result in the array
     FOR v_classification_result IN SELECT value FROM jsonb_array_elements(v_classification_results) AS t(value)
         LOOP
-            -- Extract fields from the classification_result JSON object
-            v_category := (v_classification_result ->> 'category')::SMALLINT;
-            v_probability := (v_classification_result ->> 'probability')::DOUBLE PRECISION;
-            v_description := v_classification_result ->> 'description';
-            v_details := v_classification_result -> 'details';
+            BEGIN
+                -- Extract fields from the classification_result JSON object
+                v_category := (v_classification_result ->> 'category')::SMALLINT;
+                v_probability := (v_classification_result ->> 'probability')::DOUBLE PRECISION;
+                v_description := v_classification_result ->> 'description';
+                v_details := v_classification_result -> 'details';
 
-            -- Insert into Classification_Category_Result, handle conflict if entry exists
-            INSERT INTO Classification_Category_Result (domain_id, timestamp, category_id, probability, description, details)
-            VALUES (v_domain_id, v_timestamp, v_category, v_probability, v_description, NULL)
-            ON CONFLICT ON CONSTRAINT classification_category_result_unique DO UPDATE
-                SET probability = EXCLUDED.probability,
-                    description = EXCLUDED.description,
-                    details     = EXCLUDED.details
-            RETURNING id INTO v_result_id;
+                -- Insert into Classification_Category_Result, handle conflict if entry exists
+                INSERT INTO Classification_Category_Result (domain_id, timestamp, category_id, probability, description, details)
+                VALUES (v_domain_id, v_timestamp, v_category, v_probability, v_description, NULL)
+                ON CONFLICT ON CONSTRAINT classification_category_result_unique DO UPDATE
+                    SET probability = EXCLUDED.probability,
+                        description = EXCLUDED.description,
+                        details     = EXCLUDED.details
+                RETURNING id INTO v_result_id;
 
-            -- If no details
-            IF v_details IS NULL OR jsonb_typeof(v_details) != 'object' THEN
-                CONTINUE;
-            END IF;
+                -- If no details
+                IF v_details IS NULL OR jsonb_typeof(v_details) != 'object' THEN
+                    CONTINUE;
+                END IF;
 
-            -- Loop through each key-value pair in the details JSON object
-            FOR v_detail_rec IN SELECT key, value FROM jsonb_each(v_details)
-                LOOP
-                    -- Insert into Classifier_Output, handle conflict if entry exists
-                    INSERT INTO Classifier_Output (result_id, classifier_id, probability, additional_info)
-                    VALUES (v_result_id,
-                            v_detail_rec.key::SMALLINT,
-                            v_detail_rec.value::DOUBLE PRECISION,
-                            NULL)
-                    ON CONFLICT (result_id, classifier_id) DO UPDATE
-                        SET probability     = EXCLUDED.probability,
-                            additional_info = EXCLUDED.additional_info;
-                END LOOP;
+                -- Loop through each key-value pair in the details JSON object
+                FOR v_detail_rec IN SELECT key, value FROM jsonb_each(v_details)
+                    LOOP
+                        -- Insert into Classifier_Output, handle conflict if entry exists
+                        INSERT INTO Classifier_Output (result_id, classifier_id, probability, additional_info)
+                        VALUES (v_result_id,
+                                v_detail_rec.key::SMALLINT,
+                                v_detail_rec.value::DOUBLE PRECISION,
+                                NULL)
+                        ON CONFLICT (result_id, classifier_id) DO UPDATE
+                            SET probability     = EXCLUDED.probability,
+                                additional_info = EXCLUDED.additional_info;
+                    END LOOP;
+
+            EXCEPTION
+                WHEN OTHERS THEN
+                    INSERT INTO Domain_Errors (domain_id, timestamp, source, error, sql_error_code, sql_error_message)
+                    VALUES (v_domain_id, v_timestamp, 'insert_classification_result_loop',
+                            'Cannot process classification result.', SQLSTATE, SQLERRM);
+                    RETURN NULL;
+            END;
         END LOOP;
 
     -- Don't save the record in the original table
