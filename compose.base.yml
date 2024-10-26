@@ -211,6 +211,9 @@ services:
 
   fl-jobmanager:
     image: domrad/merger-flink
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
     restart: always
     ports:
      - "31020:8081"
