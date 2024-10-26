@@ -49,8 +49,8 @@ INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (15, 2, 
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (16, 2, 'IP-based NN');
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (17, 3, 'Deep NN (binary)');
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (18, 3, 'LightGBM (binary)');
-INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (19, 3, 'HTML-based LightGBM');
-INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (20, 3, 'HTML-based LightGBM');
+INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (19, 1, 'HTML-based LightGBM');
+INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (20, 2, 'HTML-based LightGBM');
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (100, 3, 'dga:pushdotid');
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (101, 3, 'dga:matsnu');
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (102, 3, 'dga:szribi');
