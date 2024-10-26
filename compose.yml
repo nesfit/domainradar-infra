@@ -1,66 +1,14 @@
-name: drtest
+name: domainradar
+include:
+  - ./compose.base.yml
+   
 x-scaling:
-  collectors-python: &scale-py-collectors
-    scale: ${COLLECTORS_PY_SCALE:-1}
-  collectors-java-cpc: &scale-java-cpc-collectors
-    scale: ${COLLECTORS_JAVA_CPC_SCALE:-1}
-  extractor: &scale-extractor
-    scale: ${EXTRACTOR_SCALE:-1}
   classifier: &scale-classifier
     scale: ${CLASSIFIER_SCALE:-1}
-  flink-taskmanager: &scale-taskmanager
-    scale: ${FLINK_TASKMANAGER_SCALE:-1}
-
-x-base-service-definitions: 
-  python: &python-collector
-    <<: *scale-py-collectors
-    restart: always
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
-    networks:
-      - kafka-clients
-      - collectors
-
-  java-cpc: &java-cpc-collector
-    <<: *scale-java-cpc-collectors
-    restart: always
-    image: domrad/java-standalone
-    entrypoint: [ "java", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
-    networks:
-      - kafka-clients
-      - collectors
-   
+  
 services:
-
-  # --- General infrastructure --- #
-
-  kafka1:
-    image: docker.io/apache/kafka:3.7.0
-    hostname: kafka1
-    volumes:
-      - kafka1-single-log:/var/lib/kafka/data
-    secrets:
-      - kafka-truststore
-      - kafka1-keystore
-    networks:
-      kafka-clients:
-        ipv4_address: 192.168.100.2
-        aliases: [ "kafka1" ]
-      kafka-outside-world:
-        ipv4_address: 192.168.103.250
-    ports:
-      - "31013:31013"
-    env_file:
-      - ./envs/kafka1_single.env
-
   # Kafka Connect in the full configuration, including PostgreSQL
-  kafka-connect: &connect-base
-    profiles:
-      - full
+  kafka-connect:
     build:
       context: .
       dockerfile: ./dockerfiles/kafka_connect.Dockerfile
@@ -85,64 +33,7 @@ services:
       - ./connect_properties/:/opt/kafka-connect/config/
       - kafka-connect-offsets:/tmp/kafka-connect
 
-  # Kafka Connect without PostgreSQL, for use in the standalone collection scenarios only
-  kafka-connect-standalone:
-    <<: *connect-base
-    profiles:
-      - colext
-      - col
-    command: ["/bin/bash", "-c", "/opt/kafka/bin/connect-standalone.sh /opt/kafka-connect/config/1*.properties /opt/kafka-connect/config/mongo/*.properties"]
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
-      mongo:
-        condition: service_started
-
-  kafka-ui:
-    image: ghcr.io/kafbat/kafka-ui:latest
-    depends_on:
-      - kafka1
-    secrets:
-      - kafka-truststore
-      - client1-keystore
-    networks:
-      kafka-clients:
-        ipv4_address: 192.168.100.11
-      outside-world:
-        ipv4_address: 192.168.103.11
-    ports:
-      - "31000:8080"
-    volumes:
-      - ./client_properties/kafka_ui.yml:/etc/kafkaui/dynamic_config.yaml
-    env_file:
-      - ./envs/kafka_ui.env
-    environment:
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=${BOOTSTRAP_SERVERS:-kafka1:9093}
-
-  initializer:
-    build:
-      context: .
-      dockerfile: ./dockerfiles/initializer.Dockerfile
-    depends_on:
-      - kafka1
-    secrets:
-      - kafka-truststore
-      - client1-keystore
-    networks:
-      - kafka-clients
-    volumes:
-      - ./client_properties/initializer.properties:/scripts/client.properties
-    environment:
-      - BOOTSTRAP=${BOOTSTRAP_SERVERS:-kafka1:9093}
-      - COMMAND_CONFIG_FILE=/scripts/client.properties
-      - EXTRA_SLEEP=0
-      - UPDATE_EXISTING_TOPICS=0
-
   loader:
-    profiles:
-      - full
-      - colext
-      - col
     image: domrad/loader
     restart: always
     depends_on:
@@ -161,12 +52,11 @@ services:
       - ./envs/loader.env
 
   webui:
-    profiles:
-      - full
     image: domrad/webui
     restart: always
     depends_on:
       - kafka1
+      - postgres
     networks:
       - kafka-clients
       - databases
@@ -197,141 +87,12 @@ services:
       - ./client_properties/config_manager.toml:/app/config.toml
       - /tmp/domrad_control.sock:/app/config_manager.sock
 
-  standalone-input:
-    profiles:
-      - col
-      - colext
-    image: domrad/standalone-input
-    depends_on:
-      kafka1:
-        condition: service_started
-      mongo:
-        condition: service_started
-    secrets:
-      - ca-cert
-      - client2-cert
-      - client2-key
-    networks:
-      - kafka-clients
-      - databases
-    volumes:
-      - ./client_properties/standalone_input.toml:/app/config.toml
-      - ./misc/testing_domains.txt:/app/sample.txt
-
-  # --- Collectors --- #
-
-  collector-zone:
-    <<: *python-collector
-    image: domrad/zone
-    secrets:
-      - ca-cert
-      - client2-cert
-      - client2-key
-    volumes:
-      - ./client_properties/zone.toml:/app/config.toml
-    
-  collector-dns:
-    <<: *python-collector
-    image: domrad/dns
-    secrets:
-      - ca-cert
-      - client2-cert
-      - client2-key
-    volumes:
-      - ./client_properties/dns.toml:/app/config.toml
-
-  collector-tls:
-    <<: *java-cpc-collector
-    entrypoint: [ "java", "-Djava.security.properties=/app/legacy.security", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
-    command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
-    secrets:
-      - kafka-truststore
-      - client2-keystore
-    volumes:
-      - ./client_properties/tls.properties:/app/client.properties
-      - ./client_properties/log4j2.xml:/app/log4j2.xml
-
-  collector-nerd:
-    <<: *java-cpc-collector
-    command: [ "--col-nerd", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
-    secrets:
-      - kafka-truststore
-      - client2-keystore
-    volumes:
-      - ./client_properties/nerd.properties:/app/client.properties
-      - ./client_properties/log4j2.xml:/app/log4j2.xml
-
-  collector-geoip:
-    <<: *java-cpc-collector
-    command: [ "--col-geo", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
-    secrets:
-      - kafka-truststore
-      - client2-keystore
-    volumes:
-      - ./geoip_data/:/app/geoip/
-      - ./client_properties/geoip.properties:/app/client.properties
-      - ./client_properties/log4j2.xml:/app/log4j2.xml
-
-  collector-rdap-dn:
-    <<: *python-collector
-    image: domrad/rdap-dn
-    secrets:
-      - ca-cert
-      - client2-cert
-      - client2-key
-    volumes:
-      - ./client_properties/rdap_dn.toml:/app/config.toml
-
-  collector-rdap-ip:
-    <<: *python-collector
-    image: domrad/rdap-ip
-    secrets:
-      - ca-cert
-      - client2-cert
-      - client2-key
-    volumes:
-      - ./client_properties/rdap_ip.toml:/app/config.toml
-
-  collector-rtt:
-    <<: *python-collector
-    image: domrad/rtt
-    secrets:
-      - ca-cert
-      - client2-cert
-      - client2-key
-    volumes:
-      - ./client_properties/rtt.toml:/app/config.toml
-    cap_add:
-      - CAP_NET_RAW
-      - CAP_NET_ADMIN
-
-  # --- Extractor and classifier #
-
-  extractor:
-    <<: *scale-extractor
-    profiles:
-      - colext
-      - full
-    image: domrad/extractor
-    depends_on:
-      initializer:
-        condition: service_completed_successfully
-    secrets:
-      - ca-cert
-      - client2-cert
-      - client2-key
-    networks:
-      - kafka-clients
-      - outside-world
-    volumes:
-      - ./client_properties/extractor.toml:/app/config.toml
-      - ./extractor_data/:/app/data/
+  # --- Classifier --- #
 
   classifier:
     <<: *scale-classifier
-    profiles:
-        - full
     image: domrad/classifier
+    restart: always
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -344,12 +105,12 @@ services:
     volumes:
       - ./client_properties/classifier_unit.toml:/app/config.toml
       - /opt/domainradar/future/colext/python_pipeline/classifier/domainradar-clf/classifiers/:/run/models/
+    env_file: 
+      - ./envs/faust.env
 
   # --- Databases --- #
 
   postgres:
-    profiles:
-      - full
     image: docker.io/postgres:16
     restart: always
     secrets:
@@ -373,153 +134,11 @@ services:
       outside-world:
         ipv4_address: 192.168.103.20
 
-  # MongoDB is only used for standalone collection
-  mongo:
-    profiles:
-      - col
-      - colext
-    image: docker.io/mongo:7
-    command: --config /etc/mongod.conf
-    restart: always
-    secrets:
-      - mongo_master_password
-      - mongo_connect_password
-    volumes:
-      - mongo-data:/data/db
-      - ./db/mongo/init/:/docker-entrypoint-initdb.d/
-      - ./db/mongo/mongod.conf.yml:/etc/mongod.conf
-    env_file:
-      - ./db/mongo/mongo.env
-    ports:
-      - "31011:27017"
-    networks:
-      databases:
-        ipv4_address: 192.168.101.3
-        aliases: [ "mongo" ]
-      outside-world:
-        ipv4_address: 192.168.103.21
-
-  # --- Flink --- #
-
-  fl-jobmanager:
-    profiles:
-      - full
-      - colext
-    image: domrad/merger-flink
-    ports:
-     - "31020:8081"
-    command: ["standalone-job", "--job-classname", "cz.vut.fit.domainradar.DataStreamJob",
-      "--", "/opt/merger-flink.properties"]
-    # --fromSavepoint /path/to/savepoint --allowNonRestoredState
-    volumes:
-      - ./client_properties/merger-flink.properties:/opt/merger-flink.properties
-      - flink-data:/flink-data/
-      - type: tmpfs
-        target: /flink-tmp
-        read_only: false
-        tmpfs:
-          size: "2147483648"
-          mode: 0777
-    secrets:
-      - kafka-truststore
-      - client2-keystore
-    env_file: ./envs/flink.env
-    networks:
-      kafka-clients: {}
-      outside-world: {}
-
-  fl-taskmanager:
-    <<: *scale-taskmanager
-    profiles:
-      - full
-      - colext
-    image: domrad/merger-flink
-    depends_on:
-      - fl-jobmanager
-    command: taskmanager
-    volumes:
-      - ./client_properties/merger-flink.properties:/opt/merger-flink.properties
-      - flink-data:/flink-data/
-      - type: tmpfs
-        target: /flink-tmp
-        read_only: false
-        tmpfs:
-          size: "2147483648"
-          mode: 0777
-    secrets:
-      - kafka-truststore
-      - client2-keystore
-    env_file: ./envs/flink.env
-    networks:
-      kafka-clients: {}
-
 volumes:
-  kafka1-single-log: {}
   postgres-data: {}
-  mongo-data: {}
   kafka-connect-offsets: {}
-  flink-data: {}
-
-networks:
-  kafka-clients:
-    driver: bridge
-    enable_ipv6: false
-    internal: true
-    ipam:
-      config:
-        - subnet: 192.168.100.0/24
-          gateway: 192.168.100.1
-          ip_range: 192.168.100.128/25
-  databases:
-    driver: bridge
-    enable_ipv6: false
-    internal: true
-    ipam:
-      config:
-        - subnet: 192.168.101.0/24
-          gateway: 192.168.101.1
-          ip_range: 192.168.101.128/25
-  collectors:
-    driver: bridge
-    enable_ipv6: true
-    ipam:
-      config:
-        - subnet: 192.168.102.0/24
-          gateway: 192.168.102.1
-          ip_range: 192.168.102.128/25
-        - subnet: fd10:3456:789a:1::/64
-  outside-world:
-    driver: bridge
-    enable_ipv6: false
-    ipam:
-      config:
-        - subnet: 192.168.103.0/25
-          gateway: 192.168.103.1
-  kafka-outside-world:
-    driver: bridge
-    enable_ipv6: false
-    ipam:
-      config:
-        - subnet: 192.168.103.248/29
-          gateway: 192.168.103.249
 
 secrets:
-  kafka-truststore:
-    file: ./secrets/kafka.truststore.jks
-  kafka1-keystore:
-    file: ./secrets/secrets_kafka1/kafka1.keystore.jks
-  client1-keystore:
-    file: ./secrets/secrets_client1/client1.keystore.jks
-  client2-keystore:
-    file: ./secrets/secrets_client2/client2.keystore.jks
-  ca-cert:
-    file: ./secrets/ca/ca-cert
-  client2-cert:
-    file: ./secrets/secrets_client2/client2-cert.pem
-  client2-key:
-    file: ./secrets/secrets_client2/client2-priv-key.pem
-
-  # --- Databases ---
   postgres_master_password:
     file: ./db/postgres/master.secret
   postgres_prefilter_password:
@@ -530,7 +149,3 @@ secrets:
     file: ./db/postgres/connect.secret
   postgres_webui_password:
     file: ./db/postgres/webui.secret
-  mongo_master_password:
-    file: ./db/mongo/master.secret
-  mongo_connect_password:
-    file: ./db/mongo/connect.secret
