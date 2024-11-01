@@ -288,7 +288,8 @@ BEGIN
             INSERT INTO Domain_Errors (domain_id, timestamp, source, error, sql_error_code, sql_error_message)
             VALUES (v_domain_id, v_timestamp, 'insert_collection_result',
                     'Cannot parse JSON.', SQLSTATE, SQLERRM);
-            RETURN NULL;
+
+            v_deserialized_data := NULL;
     END;
 
     -- Check collector
@@ -301,13 +302,16 @@ BEGIN
     END IF;
 
     -- Update IP data
-    PERFORM update_ip_data(v_ip_id,
-                           NEW.collector,
-                           v_deserialized_data,
-                           v_timestamp,
-                           NEW.status_code);
+    IF v_ip_id IS NOT NULL AND v_deserialized_data IS NOT NULL THEN
+        PERFORM update_ip_data(v_ip_id,
+                               NEW.collector,
+                               v_deserialized_data,
+                               v_timestamp,
+                               NEW.status_code);
+    END IF;
 
     -- Insert into Collection_Result
+    -- IMPORTANT: Change the two occurrences of 'v_deserialized_data' to 'NULL' to disable storing raw data
     INSERT INTO Collection_Result (domain_id, ip_id, source_id, status_code, error, timestamp, raw_data)
     VALUES (v_domain_id, v_ip_id, v_collector_id, NEW.status_code, NEW.error,
             v_timestamp, v_deserialized_data)
