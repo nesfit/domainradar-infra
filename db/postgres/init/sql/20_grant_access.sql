@@ -38,6 +38,9 @@ grant select, insert, update
 grant select
     on table classification_category, classifier_type, collector to :CONNECT_USER;
 
+grant select
+    on table custom_prefilter, custom_prefiltered_domain to :CONNECT_USER;
+
 grant select, insert, update
     on table domain, ip to :CONNECT_USER;
     
@@ -48,14 +51,21 @@ grant select, insert, update
     on table classification_category_result, classifier_output to :CONNECT_USER;
 
 grant select, insert, update
-    on table qradar_offense, qradar_offense_source to :CONNECT_USER;
+    on table qradar_offense, qradar_offense_source, qradar_offense_in_source to :CONNECT_USER;
 
 grant insert
-    on table domain_errors to connect;
+    on table domain_errors to :CONNECT_USER;
 
 -- The tables used by the web UI to display the results
 grant select
     on table domain, ip, collection_result, classification_category_result, classifier_output,
              qradar_offense, qradar_offense_source, domain_errors, classification_category,
-             classifier_type, collector, domains_input to :WEBUI_USER;
+             classifier_type, collector, domains_input, custom_prefilter, custom_prefiltered_domain
+    to :WEBUI_USER;
+
+grant insert, update
+    on table custom_prefilter, custom_prefiltered_domain
+    to :WEBUI_USER;
+
+            
 
