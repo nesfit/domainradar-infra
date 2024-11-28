@@ -63,7 +63,7 @@ grant select
              classifier_type, collector, domains_input, custom_prefilter, custom_prefiltered_domain
     to :WEBUI_USER;
 
-grant insert, update
+grant insert, update, delete
     on table custom_prefilter, custom_prefiltered_domain
     to :WEBUI_USER;
 
