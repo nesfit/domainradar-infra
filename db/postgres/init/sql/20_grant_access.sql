@@ -26,6 +26,10 @@ grant select, update
 grant select, insert
     on table domains_input to :WEBUI_USER;
 
+-- The custom prefilter tables
+grant select
+    on table custom_prefilter, custom_prefiltered_domain to :PREFILTER_USER;
+
 -- The dummy input tables for the pipeline sinks
 grant select, insert, update
     on table collection_results_dummy_target, classification_results_dummy_target to :CONNECT_USER;
@@ -37,9 +41,6 @@ grant select, insert, update
 -- The tables on which the database procedures triggered by CONNECT_USER operate
 grant select
     on table classification_category, classifier_type, collector to :CONNECT_USER;
-
-grant select
-    on table custom_prefilter, custom_prefiltered_domain to :CONNECT_USER;
 
 grant select, insert, update
     on table domain, ip to :CONNECT_USER;
