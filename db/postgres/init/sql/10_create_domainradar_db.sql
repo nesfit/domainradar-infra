@@ -191,7 +191,6 @@ CREATE TABLE Feature_Vector
 -- Misc
 CREATE INDEX ON Classifier_Type USING HASH (classifier);
 CREATE INDEX ON Collector USING HASH (collector);
-CREATE INDEX ON Collection_Result (domain_id);
 -- Joins IPs with QRadar data
 CREATE INDEX ON QRadar_Offense_Source (ip);
 -- Domain data lookups
@@ -199,9 +198,16 @@ CREATE INDEX ON Classification_Category_Result (domain_id DESC);
 CREATE INDEX ON Classification_Category_Result (category_id);
 CREATE INDEX ON Classification_Category_Result (probability DESC);
 CREATE INDEX ON Classification_Category_Result (category_id, probability DESC);
+-- Domain/IP data lookups
+CREATE INDEX ON IP (domain_id DESC);
+CREATE INDEX ON IP (ip DESC);
+-- Collection result lookups
+CREATE INDEX ON Collection_Result (domain_id);
+CREATE INDEX ON Collection_Result (ip_id);
 -- Sorting in the UI
 CREATE INDEX ON Domain (aggregate_probability DESC);
 CREATE INDEX ON Domain (last_update DESC);
+CREATE INDEX domain_names_trigram_index ON Domain USING GIST (domain_name gist_trgm_ops(siglen=32));
 -- Stats
 CREATE INDEX ON Domains_Input (first_seen DESC);
 
