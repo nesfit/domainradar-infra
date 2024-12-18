@@ -520,7 +520,7 @@ CREATE OR REPLACE TRIGGER insert_classification_result_trigger
     FOR EACH ROW
 EXECUTE FUNCTION insert_classification_result();
 
-CREATE OR REPLACE TRIGGER insert_classification_result_trigger
+CREATE OR REPLACE TRIGGER insert_feature_vector_trigger
     BEFORE INSERT
     ON Feature_Vector
     FOR EACH ROW
