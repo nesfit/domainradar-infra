@@ -5,9 +5,9 @@
         <Property name="kafka.topic">component_logs</Property>
         <Property name="kafka.security.protocol">SSL</Property>
         <Property name="kafka.ssl.truststore.location">/run/secrets/kafka-truststore</Property>
-        <Property name="kafka.ssl.truststore.password">secret_truststore_password</Property>
-        <Property name="kafka.ssl.keystore.location">/run/secrets/client2-keystore</Property>
-        <Property name="kafka.ssl.keystore.password">secret_client2_password</Property>
+        <Property name="kafka.ssl.truststore.password">$$PASS_TRUSTSTORE$$</Property>
+        <Property name="kafka.ssl.keystore.location">/run/secrets/$$LOG4J-ID$$-keystore</Property>
+        <Property name="kafka.ssl.keystore.password">$$LOG4J-PASSWORD$$</Property>
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_ERR">

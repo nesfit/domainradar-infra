@@ -8,15 +8,15 @@ CA_VALIDITY_DAYS=3650
 BROKER_KEY_VALIDITY_DAYS=730
 CLIENT_CERT_VALIDITY_DAYS=365
 
-CA_PASSWORD="secret_ca_password"
-TRUSTSTORE_PASSWORD="secret_truststore_password"
+CA_PASSWORD="$$PASS_CA$$"
+TRUSTSTORE_PASSWORD="$$PASS_TRUSTSTORE$$"
 
-NUM_CLIENTS=4
-NUM_BROKERS=2
+NUM_CLIENTS=7
+NUM_BROKERS=5
 
-CLIENT_NAMES=("client1" "client2" "loader" "webui")
-CLIENT_PASSWORDS=("secret_client1_password" "secret_client2_password" "secret_loader_password" "secret_webui_password")
-BROKER_PASSWORDS=("secret_broker1_password" "secret_broker2_password")
+CLIENT_NAMES=("classifier-unit" "config-manager" "collector" "extractor" "kafka-connect" "initializer" "kafka-ui" "merger" "admin")
+CLIENT_PASSWORDS=("$$PASS_KEY_CLASSIFIER_UNIT$$" "$$PASS_KEY_CONFIG_MANAGER$$" "$$PASS_KEY_COLLECTOR$$" "$$PASS_KEY_EXTRACTOR$$" "$$PASS_KEY_KAFKA_CONNECT$$" "$$PASS_KEY_INITIALIZER$$" "$$PASS_KEY_KAFKA_UI$$" "$$PASS_KEY_MERGER$$" "$$PASS_KEY_ADMIN$$")
+BROKER_PASSWORDS=("$$PASS_KEY_BROKER_1$$" "$$PASS_KEY_BROKER_2$$" "$$PASS_KEY_BROKER_3$$" "$$PASS_KEY_BROKER_4$$" "$$PASS_KEY_BROKER_5$$")
 
 SECRETS_DIR="secrets"
 CA_KEYSTORE="ca"
@@ -35,7 +35,7 @@ cd "$SECRETS_DIR" || exit 1
 echo "Creating CA..."
 
 cd "$CA_KEYSTORE" || exit 1
-openssl req -x509 -config "../../misc/openssl-ca.cnf" -newkey rsa:4096 -sha256 -nodes \
+openssl req -x509 -config "../../openssl-ca.cnf" -newkey rsa:4096 -sha256 -nodes \
     -keyout "ca-key" -out "ca-cert" -passout "pass:$CA_PASSWORD" \
     -subj "/CN=RootCA/O=DomainRadar/L=Brno/C=CZ" -days "$CA_VALIDITY_DAYS"
 cd .. || exit
@@ -54,14 +54,14 @@ for ((i=1; i <= NUM_BROKERS; i++)); do
         -genkey -keyalg RSA \
         -storepass "${BROKER_PASSWORDS[$i-1]}" -keypass "${BROKER_PASSWORDS[$i-1]}" \
         -dname "CN=kafka$i, OU=Brokers, O=DomainRadar, C=CZ" \
-        -ext "SAN=DNS:kafka$i,DNS:kafka$i.domrad,DNS:feta4.fit.vutbr.cz,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
+        -ext "SAN=DNS:kafka$i,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
 
     keytool -keystore kafka$i.keystore.jks -alias kafka$i -certreq -file kafka$i.csr \
         -storepass "${BROKER_PASSWORDS[$i-1]}" -keypass "${BROKER_PASSWORDS[$i-1]}" \
-        -ext "SAN=DNS:kafka$i,DNS:kafka$i.domrad,DNS:feta4.fit.vutbr.cz,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
+        -ext "SAN=DNS:kafka$i,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
 
     cd "$CA_KEYSTORE" || exit 1
-    openssl ca -batch -config ../../misc/openssl-ca.cnf -policy signing_policy -extensions signing_req \
+    openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
         -days "$BROKER_KEY_VALIDITY_DAYS" -out "../kafka$i-cert-signed" -infiles "../kafka$i.csr"
     cd .. || exit
 
@@ -88,7 +88,7 @@ for ((i=1; i <= NUM_CLIENTS; i++)); do
     keytool -keystore "$name.keystore.jks" -alias "$name" -certreq -file "$name.csr" -storepass "$CLIENT_PASSWORD" -keypass "$CLIENT_PASSWORD"
 
     cd "$CA_KEYSTORE" || exit 1
-    openssl ca -batch -config ../../misc/openssl-ca.cnf -policy signing_policy -extensions signing_req \
+    openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \
         -days "$CLIENT_CERT_VALIDITY_DAYS" -out "../$name-cert.pem" -infiles "../$name.csr"
     cd .. || exit
 

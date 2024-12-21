@@ -5,9 +5,9 @@ use_ssl = true
 [connection.ssl]
 ca_file = "/run/secrets/ca-cert"
 server_verification_required = true
-client_cert_file = "/run/secrets/client2-cert"
-client_key_file = "/run/secrets/client2-key"
-client_key_password = "secret_client2_password"
+client_cert_file = "/run/secrets/collector-cert"
+client_key_file = "/run/secrets/collector-key"
+client_key_password = "$$PASS_KEY_COLLECTOR$$"
 check_hostname = true
 
 [rdap_dn.faust]
