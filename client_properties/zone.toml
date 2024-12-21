@@ -16,7 +16,7 @@ producer_compression_type = "zstd"
 [zone]
 app_id = "domrad-zone"
 debug = true
-dns_servers = ["195.113.144.194", "195.113.144.233"]
+dns_servers = [$$DNS_RESOLVERS$$]
 timeout = 4
 rotate_nameservers = true
 concurrency = 16

@@ -46,4 +46,6 @@ rm ./*.csr
 mkdir -p "secrets_$CLIENT_ID"
 mv "$CLIENT_ID"* "secrets_$CLIENT_ID/"
 
+echo "$CLIENT_PASSWORD" > "secrets_$name/key-password.txt"
+
 echo "Generated client private key and certificate for $CLIENT_ID."

@@ -101,6 +101,8 @@ for ((i=1; i <= NUM_CLIENTS; i++)); do
     openssl pkcs12 -in "$name.keystore.p12" -nocerts -out "$name-priv-key.pem" -passin "pass:$CLIENT_PASSWORD" -passout "pass:$CLIENT_PASSWORD"
     rm "$name.keystore.p12"
 
+    echo "$CLIENT_PASSWORD" > "secrets_$name/key-password.txt"
+
     rm ./*.csr
     mkdir -p "secrets_$name"
     mv $name* "secrets_$name/"
