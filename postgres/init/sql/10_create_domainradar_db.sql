@@ -361,6 +361,8 @@ BEGIN
 
     -- Insert into Collection_Result
     -- IMPORTANT: Change the two occurrences of 'v_deserialized_data' to 'NULL' to disable storing raw data
+    
+    -- $$$
     INSERT INTO Collection_Result (domain_id, ip_id, source_id, status_code, error, timestamp, raw_data)
     VALUES (v_domain_id, v_ip_id, v_collector_id, NEW.status_code, NEW.error,
             v_timestamp, v_deserialized_data)
@@ -368,6 +370,7 @@ BEGIN
         SET status_code = NEW.status_code,
             error       = NEW.error,
             raw_data    = v_deserialized_data;
+    -- $$$
 
     -- Don't save the record in the original table
     RETURN NULL;
