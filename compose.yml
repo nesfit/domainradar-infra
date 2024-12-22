@@ -10,8 +10,8 @@ services:
   # Kafka Connect in the full configuration, including PostgreSQL
   kafka-connect:
     build:
-      context: .
-      dockerfile: ./kafka_connect/kafka_connect.Dockerfile
+      context: ./kafka_connect/
+      dockerfile: kafka_connect.Dockerfile
     depends_on:
       initializer:
         condition: service_completed_successfully

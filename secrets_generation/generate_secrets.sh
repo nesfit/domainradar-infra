@@ -14,8 +14,8 @@ TRUSTSTORE_PASSWORD="$$PASS_TRUSTSTORE$$"
 NUM_CLIENTS=7
 NUM_BROKERS=5
 
-CLIENT_NAMES=("classifier-unit" "config-manager" "collector" "extractor" "kafka-connect" "initializer" "kafka-ui" "merger" "admin")
-CLIENT_PASSWORDS=("$$PASS_KEY_CLASSIFIER_UNIT$$" "$$PASS_KEY_CONFIG_MANAGER$$" "$$PASS_KEY_COLLECTOR$$" "$$PASS_KEY_EXTRACTOR$$" "$$PASS_KEY_KAFKA_CONNECT$$" "$$PASS_KEY_INITIALIZER$$" "$$PASS_KEY_KAFKA_UI$$" "$$PASS_KEY_MERGER$$" "$$PASS_KEY_ADMIN$$")
+CLIENT_NAMES=("classifier-unit" "config-manager" "collector" "extractor" "kafka-connect" "initializer" "kafka-ui" "merger" "loader" "webui" "admin")
+CLIENT_PASSWORDS=("$$PASS_KEY_CLASSIFIER_UNIT$$" "$$PASS_KEY_CONFIG_MANAGER$$" "$$PASS_KEY_COLLECTOR$$" "$$PASS_KEY_EXTRACTOR$$" "$$PASS_KEY_KAFKA_CONNECT$$" "$$PASS_KEY_INITIALIZER$$" "$$PASS_KEY_KAFKA_UI$$" "$$PASS_KEY_MERGER$$" "$$PASS_KEY_LOADER$$" "$$PASS_KEY_WEBUI$$" "$$PASS_KEY_ADMIN$$")
 BROKER_PASSWORDS=("$$PASS_KEY_BROKER_1$$" "$$PASS_KEY_BROKER_2$$" "$$PASS_KEY_BROKER_3$$" "$$PASS_KEY_BROKER_4$$" "$$PASS_KEY_BROKER_5$$")
 
 SECRETS_DIR="secrets"

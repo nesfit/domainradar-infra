@@ -3,7 +3,7 @@ FROM domrad/kafka-connect:latest
 WORKDIR /opt/kafka-connect/plugins
 
 # Copy the connectors from the context
-COPY ./connect_plugins/ .
+COPY ./plugins/ .
 
 # Extract all zip files
 RUN ZIP_CNT=`ls -1 *.zip 2>/dev/null | wc -l` && \
