@@ -100,15 +100,12 @@ services:
         condition: service_completed_successfully
     secrets:
       - ca-cert
-      - client2-cert
-      - client2-key
+      - classifier-unit-cert
+      - classifier-unit-key
     networks:
       - kafka-clients
     volumes:
       - ./client_properties/classifier_unit.toml:/app/config.toml
-      - /opt/domainradar/future/colext/python_pipeline/classifier/domainradar-clf/classifiers/:/run/models/
-    env_file: 
-      - ./envs/faust.env
 
   # --- Databases --- #
 
