@@ -11,7 +11,7 @@ services:
   kafka-connect:
     build:
       context: .
-      dockerfile: ./dockerfiles/kafka_connect.Dockerfile
+      dockerfile: ./kafka_connect/kafka_connect.Dockerfile
     depends_on:
       initializer:
         condition: service_completed_successfully
@@ -19,7 +19,7 @@ services:
         condition: service_started
     secrets:
       - kafka-truststore
-      - client1-keystore
+      - kafka-connect-keystore
     networks:
       kafka-clients:
         ipv4_address: 192.168.100.10
@@ -30,7 +30,7 @@ services:
     ports:
       - "31002:8083"
     volumes:
-      - ./connect_properties/:/opt/kafka-connect/config/
+      - ./kafka_connect/properties/:/opt/kafka-connect/config/
       - kafka-connect-offsets:/tmp/kafka-connect
 
   loader:
@@ -80,8 +80,8 @@ services:
     user: root
     secrets:
       - ca-cert
-      - client2-cert
-      - client2-key
+      - config-manager-cert
+      - config-manager-key
     networks:
       - kafka-clients
     volumes:
@@ -123,10 +123,10 @@ services:
       - postgres_webui_password
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./db/postgres/init/:/docker-entrypoint-initdb.d/
-      - ./db/postgres/postgres.conf:/etc/postgresql/postgresql.conf
+      - ./postgres/init/:/docker-entrypoint-initdb.d/
+      - ./postgres/postgres.conf:/etc/postgresql/postgresql.conf
     env_file:
-      - ./db/postgres/postgres.env
+      - ./postgres/postgres.env
     ports:
       - "31010:5432"
     healthcheck:
@@ -147,12 +147,12 @@ volumes:
 
 secrets:
   postgres_master_password:
-    file: ./db/postgres/master.secret
+    file: ./postgres/master.secret
   postgres_prefilter_password:
-    file: ./db/postgres/prefilter.secret
+    file: ./postgres/prefilter.secret
   postgres_controller_password:
-    file: ./db/postgres/controller.secret
+    file: ./postgres/controller.secret
   postgres_connect_password:
-    file: ./db/postgres/connect.secret
+    file: ./postgres/connect.secret
   postgres_webui_password:
-    file: ./db/postgres/webui.secret
+    file: ./postgres/webui.secret
