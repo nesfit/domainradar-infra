@@ -14,7 +14,7 @@ check_hostname = true
 producer_compression_type = "zstd"
 
 [extractor]
-app_id = "domrad-extractor"
+app_id = "$$ID_PREFIX$$-extractor"
 batch_size = 50
 batch_timeout = 5
 data_dir = "/app/data"

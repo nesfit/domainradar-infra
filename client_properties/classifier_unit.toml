@@ -36,7 +36,7 @@ stdout_level = "DEBUG"
 stderr_level = "INFO"
 
 [client]
-app_id = "domrad-classifier-unit"
+app_id = "$$ID_PREFIX$$-classifier-unit"
 mp_start_method = "forkserver"
 workers = 8
 classifier_impl = "production"

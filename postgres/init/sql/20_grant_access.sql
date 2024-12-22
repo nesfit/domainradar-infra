@@ -1,13 +1,13 @@
 -- Add connect permissions on the database to all the users
 grant connect on database :DOMRAD_DB_NAME to :PREFILTER_USER;
 grant connect on database :DOMRAD_DB_NAME to :CONNECT_USER;
-grant connect on database :DOMRAD_DB_NAME to :INGESTION_USER;
+-- grant connect on database :DOMRAD_DB_NAME to :CONTROLLER_USER;
 grant connect on database :DOMRAD_DB_NAME to :WEBUI_USER;
 
 -- Add usage permissions on the default schema to all the users
 grant usage on schema public to :PREFILTER_USER;
 grant usage on schema public to :CONNECT_USER;
-grant usage on schema public to :INGESTION_USER;
+-- grant usage on schema public to :CONTROLLER_USER;
 grant usage on schema public to :WEBUI_USER;
 
 -- Add sequence permissions
@@ -21,8 +21,6 @@ grant select, insert, update
     on table domains_input to :PREFILTER_USER;
 grant select
     on table domains_input to :CONNECT_USER;
-grant select, update
-    on table domains_input to :INGESTION_USER;
 grant select, insert
     on table domains_input to :WEBUI_USER;
 

@@ -17,7 +17,7 @@ check_hostname = true
 "compression.codec" = "zstd"
 
 [manager]
-app_id = "domrad-config-manager"
+app_id = "$$ID_PREFIX$$-config-manager"
 configs_dir = "/var/domainradar_properties"
 use_socket = true
 socket_path = "/app/config_manager.sock"

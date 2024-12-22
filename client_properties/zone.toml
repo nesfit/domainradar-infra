@@ -14,7 +14,7 @@ check_hostname = true
 producer_compression_type = "zstd"
 
 [zone]
-app_id = "domrad-zone"
+app_id = "$$ID_PREFIX$$-zone"
 debug = true
 dns_servers = [$$DNS_RESOLVERS$$]
 timeout = 4

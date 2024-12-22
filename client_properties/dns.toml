@@ -14,7 +14,7 @@ check_hostname = true
 producer_compression_type = "zstd"
 
 [dns]
-app_id = "domrad-dns"
+app_id = "$$ID_PREFIX$$-dns"
 log_level = "INFO"
 log_level_stderr = "WARNING"
 debug = false

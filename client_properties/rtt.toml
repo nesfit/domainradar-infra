@@ -14,7 +14,7 @@ check_hostname = true
 producer_compression_type = "zstd"
 
 [rtt]
-app_id = "domrad-rtt"
+app_id = "$$ID_PREFIX$$-rtt"
 debug = false
 ping_count = 5
 privileged_mode = false
