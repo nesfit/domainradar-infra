@@ -79,8 +79,8 @@ services:
 
   initializer:
     build:
-      context: .
-      dockerfile: ./dockerfiles/initializer.Dockerfile
+      context: ./initializer
+      dockerfile: initializer.Dockerfile
     depends_on:
       - kafka1
     secrets:
