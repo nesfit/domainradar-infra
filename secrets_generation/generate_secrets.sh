@@ -12,16 +12,18 @@ CA_PASSWORD="$$PASS_CA$$"
 TRUSTSTORE_PASSWORD="$$PASS_TRUSTSTORE$$"
 
 NUM_CLIENTS=7
-NUM_BROKERS=5
+NUM_BROKERS=4
 
 CLIENT_NAMES=("classifier-unit" "config-manager" "collector" "extractor" "kafka-connect" "initializer" "kafka-ui" "merger" "loader" "webui" "admin")
 CLIENT_PASSWORDS=("$$PASS_KEY_CLASSIFIER_UNIT$$" "$$PASS_KEY_CONFIG_MANAGER$$" "$$PASS_KEY_COLLECTOR$$" "$$PASS_KEY_EXTRACTOR$$" "$$PASS_KEY_KAFKA_CONNECT$$" "$$PASS_KEY_INITIALIZER$$" "$$PASS_KEY_KAFKA_UI$$" "$$PASS_KEY_MERGER$$" "$$PASS_KEY_LOADER$$" "$$PASS_KEY_WEBUI$$" "$$PASS_KEY_ADMIN$$")
-BROKER_PASSWORDS=("$$PASS_KEY_BROKER_1$$" "$$PASS_KEY_BROKER_2$$" "$$PASS_KEY_BROKER_3$$" "$$PASS_KEY_BROKER_4$$" "$$PASS_KEY_BROKER_5$$")
+BROKER_PASSWORDS=("$$PASS_KEY_BROKER_1$$" "$$PASS_KEY_BROKER_2$$" "$$PASS_KEY_BROKER_3$$" "$$PASS_KEY_BROKER_4$$")
 
 SECRETS_DIR="secrets"
 CA_KEYSTORE="ca"
 
-BROKER_IPS=("192.168.100.2,IP:192.168.103.250" "192.168.100.3,IP:192.168.103.251")
+BROKER_IPS_INTERNAL=("192.168.100.2" "192.168.100.3" "192.168.100.4" "192.168.100.5")
+BROKER_IPS_EXTERNAL=("192.168.103.250" "192.168.103.251" "192.168.103.252" "192.168.103.253")
+BROKER_PUBLIC_HOSTNAME="$$BROKER_PUBLIC_HOSTNAME$$"
 
 echo "Making directories"
 
@@ -50,15 +52,17 @@ for ((i=1; i <= NUM_BROKERS; i++)); do
     echo "----------------------------"
     echo "Processing broker kafka$i..."
 
+    ext="SAN=DNS:kafka$i,DNS:${BROKER_PUBLIC_HOSTNAME/%/$i},DNS:localhost,IP:127.0.0.1,IP:${BROKER_IPS_INTERNAL[$i-1]},IP:${BROKER_IPS_EXTERNAL[$i-1]}"
+
     keytool -keystore kafka$i.keystore.jks -alias kafka$i -validity $BROKER_KEY_VALIDITY_DAYS \
         -genkey -keyalg RSA \
         -storepass "${BROKER_PASSWORDS[$i-1]}" -keypass "${BROKER_PASSWORDS[$i-1]}" \
         -dname "CN=kafka$i, OU=Brokers, O=DomainRadar, C=CZ" \
-        -ext "SAN=DNS:kafka$i,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
+        -ext "$ext"
 
     keytool -keystore kafka$i.keystore.jks -alias kafka$i -certreq -file kafka$i.csr \
         -storepass "${BROKER_PASSWORDS[$i-1]}" -keypass "${BROKER_PASSWORDS[$i-1]}" \
-        -ext "SAN=DNS:kafka$i,IP:${BROKER_IPS[$i-1]},DNS:localhost,IP:127.0.0.1"
+        -ext "$ext"
 
     cd "$CA_KEYSTORE" || exit 1
     openssl ca -batch -config ../../openssl-ca.cnf -policy signing_policy -extensions signing_req \

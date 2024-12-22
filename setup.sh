@@ -10,6 +10,8 @@ INFRA_DIR="./"
 
 # Set to 0 to prevent collected data from being stored in PostgreSQL
 STORE_RAW_DATA_IN_POSTGRES=0
+# The public-facing hostname of the Kafka brokers (% will be replaced by a number)
+BROKER_PUBLIC_HOSTNAME="kafka%.example.com"
 
 declare -A config_options=( 
     # Collector options
@@ -22,7 +24,6 @@ declare -A config_options=(
     ["KAFBATUI_ADMIN_USERNAME"]="admin"
     ["KAFBATUI_ADMIN_PASSWORD"]="please-change-me"
     # Misc
-    ["KAFKA_PUBLIC_HOSTNAME"]="kafka1"
     ["DNS_RESOLVERS"]="\"195.113.144.194\", \"195.113.144.233\""
     ["ID_PREFIX"]="domrad"
     # Compose scaling
@@ -31,6 +32,9 @@ declare -A config_options=(
     ["EXTRACTOR_SCALE"]="2"
     ["CLASSIFIER_SCALE"]="1"
     ["FLINK_TASKMANAGER_SCALE"]="1"
+    # Internal - do not modify
+    ["BROKER_PUBLIC_HOSTNAME"]="$BROKER_PUBLIC_HOSTNAME"
+    ["KAFKA_PUBLIC_HOSTNAME"]="${BROKER_PUBLIC_HOSTNAME/%/1}"
 )
 
 # Passwords for private keys, keystores and database users
@@ -53,7 +57,6 @@ declare -A passwords=(
     ["PASS_KEY_BROKER_2"]=""
     ["PASS_KEY_BROKER_3"]=""
     ["PASS_KEY_BROKER_4"]=""
-    ["PASS_KEY_BROKER_5"]=""
     # Database user passwords
     ["PASS_DB_CONNECT"]=""
     ["PASS_DB_MASTER"]=""
