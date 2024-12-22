@@ -9,8 +9,9 @@ kafka:
           keystore:
             location: "/run/secrets/kafka-ui-keystore"
             password: "$$PASS_KEY_KAFKA_UI$$"
-          truststoreLocation: "/run/secrets/kafka-truststore"
-          truststorePassword: "$$PASS_TRUSTSTORE$$"
+          truststore:
+            location: "/run/secrets/kafka-truststore"
+            password: "$$PASS_TRUSTSTORE$$"
       kafkaConnect:
         - name: the-connect
           address: "http://kafka-connect:8083"
@@ -21,4 +22,5 @@ auth:
 spring:
   security:
     user:
-      name: ""
+      name: "$$KAFBATUI_ADMIN_USERNAME$$"
+      password: "$$KAFBATUI_ADMIN_PASSWORD$$"
