@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 
+# --- Setup script options ---
 GENERATED_PASSWORDS_FILE="./generated_passwords"
 RANDOM_PASSWORD_LENGTH=32
 
+# --- Target infrastructure options ---
+
+# Set to 0 to prevent collected data from being stored in PostgreSQL
+STORE_RAW_DATA_IN_POSTGRES=1
+
 declare -A config_options=( 
     # Collector options
-    ["NERD_TOKEN"]=""
+    ["NERD_TOKEN"]="123456789"
     # DomainRadar Web UI
     ["WEBUI_ADMIN_USERNAME"]="admin"
     ["WEBUI_ADMIN_PASSWORD"]="please-change-me"
@@ -54,6 +60,8 @@ declare -A passwords=(
     ["WEBUI_NUXT_SECRET"]=""  
 )
 
+# --- Setup functions ---
+
 ask_yes_no() {
     local prompt="$1"
     local reply
@@ -101,9 +109,26 @@ is_valid_target() {
     local filename="$1"
     local ext="${filename##*.}"
     case "$ext" in
-        sh|secret|conf|toml|xml|properties|env) return 0 ;;
+        sh|secret|conf|toml|xml|properties|env|yml) return 0 ;;
         *) return 1 ;;
     esac
+}
+
+check_properties() {
+    for key in "${!config_options[@]}"; do
+        if [[ -z ${config_options[$key]} ]]; then
+            echo "Warning: property $key is empty!" 1>&2
+        fi
+    done
+}
+
+replace() {
+    local file="$1"
+    local key="$2"
+    local value="$3"
+
+    # Replace $$KEY$$ with the corresponding value
+    sed -i "s/\\\$\\\$${key}\\\$\\\$/${value}/g" "$file"
 }
 
 replace_placeholders() {
@@ -112,18 +137,27 @@ replace_placeholders() {
     while IFS= read -r -d '' file; do
         # Check if the file is a valid target for variable substitution
         if is_valid_target "$file"; then
+            echo "Replacing in $file"
+
             for key in "${!config_options[@]}"; do
-                # Replace $$KEY$$ with the corresponding value
-                sed -i "s|\$\$${key}\$\$|${config_options[$key]}|g" "$file"
+                replace "$file" "$key" "${config_options[$key]}" 
             done
 
             for key in "${!passwords[@]}"; do
-                # Replace $$KEY$$ with the corresponding value
-                sed -i "s|\$\$${key}\$\$|${passwords[$key]}|g" "$file"
+                replace "$file" "$key" "${passwords[$key]}" 
             done
         fi
     done < <(find "$dir" -type f -print0)
 }
 
+configure_sql() {
+    if [[ $STORE_RAW_DATA_IN_POSTGRES == "1" ]]; then
+        sed -i '/\s*-- \$\$\$/,/\s*-- \$\$\$/ s/v_deserialized_data/NULL/g' 10_create_domainradar_db.sql
+    fi
+}
+
+# --- Setup process ---
+
 fill_passwords
+check_properties
 replace_placeholders "."
