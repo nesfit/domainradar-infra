@@ -189,6 +189,9 @@ CREATE TABLE Feature_Vector
 
 --- Indices ---
 
+-- Enable trigram indices
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- Misc
 CREATE INDEX ON Classifier_Type USING HASH (classifier);
 CREATE INDEX ON Collector USING HASH (collector);
