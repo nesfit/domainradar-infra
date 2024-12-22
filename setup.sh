@@ -4,10 +4,12 @@
 GENERATED_PASSWORDS_FILE="./generated_passwords"
 RANDOM_PASSWORD_LENGTH=32
 
+INFRA_DIR="./"
+
 # --- Target infrastructure options ---
 
 # Set to 0 to prevent collected data from being stored in PostgreSQL
-STORE_RAW_DATA_IN_POSTGRES=1
+STORE_RAW_DATA_IN_POSTGRES=0
 
 declare -A config_options=( 
     # Collector options
@@ -137,7 +139,7 @@ replace_placeholders() {
     while IFS= read -r -d '' file; do
         # Check if the file is a valid target for variable substitution
         if is_valid_target "$file"; then
-            echo "Replacing in $file"
+            echo "Setting configuration keys in $file"
 
             for key in "${!config_options[@]}"; do
                 replace "$file" "$key" "${config_options[$key]}" 
@@ -151,8 +153,10 @@ replace_placeholders() {
 }
 
 configure_sql() {
-    if [[ $STORE_RAW_DATA_IN_POSTGRES == "1" ]]; then
-        sed -i '/\s*-- \$\$\$/,/\s*-- \$\$\$/ s/v_deserialized_data/NULL/g' 10_create_domainradar_db.sql
+    if [[ $STORE_RAW_DATA_IN_POSTGRES == "0" ]]; then
+        file=$(find "$INFRA_DIR" -type f -name "10_create_domainradar_db.sql" | head -n 1)
+        echo "Reconfiguring database init script $file"
+        sed -i '/\s*-- \$\$\$/,/\s*-- \$\$\$/ s/v_deserialized_data/NULL/g' "$file"
     fi
 }
 
@@ -160,4 +164,5 @@ configure_sql() {
 
 fill_passwords
 check_properties
-replace_placeholders "."
+replace_placeholders "$INFRA_DIR"
+configure_sql
