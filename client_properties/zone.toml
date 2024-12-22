@@ -5,18 +5,18 @@ use_ssl = true
 [connection.ssl]
 ca_file = "/run/secrets/ca-cert"
 server_verification_required = true
-client_cert_file = "/run/secrets/client2-cert"
-client_key_file = "/run/secrets/client2-key"
-client_key_password = "secret_client2_password"
+client_cert_file = "/run/secrets/collector-cert"
+client_key_file = "/run/secrets/collector-key"
+client_key_password = "$$PASS_KEY_COLLECTOR$$"
 check_hostname = true
 
 [zone.faust]
 producer_compression_type = "zstd"
 
 [zone]
-app_id = "domrad-zone"
+app_id = "$$ID_PREFIX$$-zone"
 debug = true
-dns_servers = ["195.113.144.194", "195.113.144.233"]
+dns_servers = [$$DNS_RESOLVERS$$]
 timeout = 4
 rotate_nameservers = true
 concurrency = 16

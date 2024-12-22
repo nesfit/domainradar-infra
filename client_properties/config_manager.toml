@@ -5,9 +5,9 @@ use_ssl = true
 [connection.ssl]
 ca_file = "/run/secrets/ca-cert"
 server_verification_required = true
-client_cert_file = "/run/secrets/client2-cert"
-client_key_file = "/run/secrets/client2-key"
-client_key_password = "secret_client2_password"
+client_cert_file = "/run/secrets/config-manager-cert"
+client_key_file = "/run/secrets/config-manager-key"
+client_key_password = "$$PASS_KEY_CONFIG_MANAGER$$"
 check_hostname = true
 
 [consumer]
@@ -17,7 +17,7 @@ check_hostname = true
 "compression.codec" = "zstd"
 
 [manager]
-app_id = "domrad-config-manager"
+app_id = "$$ID_PREFIX$$-config-manager"
 configs_dir = "/var/domainradar_properties"
 use_socket = true
 socket_path = "/app/config_manager.sock"

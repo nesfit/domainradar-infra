@@ -5,16 +5,16 @@ use_ssl = true
 [connection.ssl]
 ca_file = "/run/secrets/ca-cert"
 server_verification_required = true
-client_cert_file = "/run/secrets/client2-cert"
-client_key_file = "/run/secrets/client2-key"
-client_key_password = "secret_client2_password"
+client_cert_file = "/run/secrets/extractor-cert"
+client_key_file = "/run/secrets/extractor-key"
+client_key_password = "$$PASS_KEY_EXTRACTOR$$"
 check_hostname = true
 
 [extractor.faust]
 producer_compression_type = "zstd"
 
 [extractor]
-app_id = "domrad-extractor"
+app_id = "$$ID_PREFIX$$-extractor"
 batch_size = 50
 batch_timeout = 5
 data_dir = "/app/data"
