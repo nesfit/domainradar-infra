@@ -1,4 +1,4 @@
-name: domainradar
+name: "$$COMPOSE_BASE_NAME$$"
 include:
   - ./compose.base.yml
    
