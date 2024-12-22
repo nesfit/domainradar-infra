@@ -74,10 +74,8 @@ services:
       - "31000:8080"
     volumes:
       - ./client_properties/kafka_ui.yml:/etc/kafkaui/dynamic_config.yaml
-    env_file:
-      - ./envs/kafka_ui.env
     environment:
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=${BOOTSTRAP_SERVERS:-kafka1:9093}
+      - DYNAMIC_CONFIG_ENABLED=true
 
   initializer:
     build:
