@@ -16,6 +16,7 @@ INSERT INTO public.collector_status_type (status_code, name, description) VALUES
 INSERT INTO public.collector_status_type (status_code, name, description) VALUES (3, 'Invalid IP Address', 'Invalid IP address.');
 INSERT INTO public.collector_status_type (status_code, name, description) VALUES (4, 'Unsupported IP Address Type', 'The IP address is valid but the collector cannot process it (e.g. IPv6 not supported).');
 INSERT INTO public.collector_status_type (status_code, name, description) VALUES (5, 'Internal Error', 'A generic error caused inside the collecting system (e.g. invalid state).');
+INSERT INTO public.collector_status_type (status_code, name, description) VALUES (6, 'Disabled', 'The collector is configured not to process any requests.');
 INSERT INTO public.collector_status_type (status_code, name, description) VALUES (10, 'Cannot Fetch', 'Error fetching data from the remote source (e.g. source unavailable or returned unexpected state).');
 INSERT INTO public.collector_status_type (status_code, name, description) VALUES (11, 'Timeout', 'Timeout while waiting for a response from the remote source.');
 INSERT INTO public.collector_status_type (status_code, name, description) VALUES (12, 'Not Found', 'The request entity does not exist at the remote source.');
