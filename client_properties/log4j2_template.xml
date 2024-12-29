@@ -15,7 +15,7 @@
                     pattern="[%d{ISO8601_OFFSET_DATE_TIME_HHMM}] [%level{WARN=WARNING}] [%logger{1}#%tid-%thread] %msg%n"/>
         </Console>
         <!-- To enable event-based lookups in 'key', add the log4j-plugins project and use 'KafkaPatched' -->
-        <Kafka name="Kafka" topic="component_logs" key="merger">
+        <Kafka name="Kafka" topic="component_logs" key="$$LOG4J-KEY$$">
             <PatternLayout
                     pattern="[%d{ISO8601_OFFSET_DATE_TIME_HHMM}] [%level{WARN=WARNING}] [%logger{1}#%tid-%thread] %msg"/>
 
