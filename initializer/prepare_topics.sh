@@ -44,7 +44,6 @@ TOPICS=(to_process_zone $COLLECTOR_PARALLELISM \
         feature_vectors    $CLASSIFIER_PARALLELISM \
         # These may also have more partitions to increase the scalability of the Connect sinks.
         classification_results 4 \
-        filtered_input_domains 4 \
         feature_vectors_json 1 \
         # These must have a single partition!
         configuration_change_requests 1 \
@@ -63,12 +62,17 @@ get_configs() {
   if [[ $topic == to_process_* ]] || \
      [[ $topic == processed_* ]] || \
      [[ $topic == "collected_IP_data" ]]; then
-    # 48 hours
-    config="cleanup.policy=delete,retention.ms=172800000"
+    # 1 day
+    config="cleanup.policy=delete,retention.ms=86400000"
     #
-  elif [[ $topic == "filtered_input_domains" ]] || \
-       [[ $topic == "configuration_change_requests" ]] || \
-       [[ $topic == "feature_vectors" ]]; then
+  elif [[ $topic == "all_collected_data" ]]; then
+    # 6 hours
+    config="cleanup.policy=delete,retention.ms=21600000"
+    #
+  elif [[ $topic == "configuration_change_requests" ]] || \
+       [[ $topic == "feature_vectors" ]] || \
+       [[ $topic == "feature_vectors_json" ]] || \
+       [[ $topic == "classification_results" ]]; then
     # 1 hour
     config="cleanup.policy=delete,retention.ms=3600000"
     #
@@ -77,14 +81,19 @@ get_configs() {
     config="cleanup.policy=delete,retention.ms=604800000"
     #
   elif [[ $topic == "configuration_states" ]]; then
-    # min compaction lag: 10 min, max compaction lag: 1 hours
+    # min compaction lag: 10 min, max compaction lag: 1 hour
     config="cleanup.policy=compact,min.compaction.lag.ms=600000,max.compaction.lag.ms=3600000"
     #
   else
+    # Fallback
     # min compaction lag: 1 hour, max compaction lag: 12 hours
-    config="cleanup.policy=compact,min.compaction.lag.ms=3600000,max.compaction.lag.ms=43200000"
+    # config="cleanup.policy=compact,min.compaction.lag.ms=3600000,max.compaction.lag.ms=43200000"
+    #
+    # 1 day
+    config="cleanup.policy=delete,retention.ms=86400000"
     #
   fi
+
 
   if [ "$2" = "add" ]; then
     # When creating a topic, the configs must be passed as separate arguments
