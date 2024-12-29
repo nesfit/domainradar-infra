@@ -21,11 +21,11 @@ UPDATE_PARTITIONING=${UPDATE_PARTITIONING:-0}
 # data in parallel (more instances can be run, but they won't be assigned any processing tasks
 # unless some of the processing units fail).
 # At the same time, this controls how many processing tasks can be run in the Connect sinks.
-COLLECTOR_PARALLELISM=4
-IP_COLLECTOR_PARALLELISM=4
-MERGER_PARALLELISM=4
-EXTRACTOR_PARALLELISM=4 
-CLASSIFIER_PARALLELISM=4
+COLLECTOR_PARALLELISM=$$MAX_PARALLELISM_DN_COLLECTORS$$
+IP_COLLECTOR_PARALLELISM=$$MAX_PARALLELISM_IP_COLLECTORS$$
+MERGER_PARALLELISM=$$MAX_PARALLELISM_MERGER$$
+EXTRACTOR_PARALLELISM=$$MAX_PARALLELISM_EXTRACTOR$$
+CLASSIFIER_PARALLELISM=$$MAX_PARALLELISM_CLASSIFIER$$
 
 # The array contains the names of the topics and the number of partitions for each.
 # You can use the first five lines to change the maximum partition-level parallelism 
