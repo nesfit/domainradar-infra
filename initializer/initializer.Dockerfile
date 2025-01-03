@@ -4,7 +4,7 @@ WORKDIR /scripts
 USER root
 COPY ./wait_for_startup.sh ./
 COPY ./prepare_topics.sh ./
-COPY ./loader_init_config.json ./
+COPY ./loader_init_config.template ./
 RUN chown appuser:appuser *
 
 USER appuser

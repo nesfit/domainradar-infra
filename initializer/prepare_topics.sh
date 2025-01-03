@@ -8,7 +8,7 @@ COMMAND_CONFIG_FILE=${COMMAND_CONFIG_FILE:-client.properties}
 TOPICS_SCRIPT="$KAFKA_BIN_DIR/kafka-topics.sh"
 CONFIGS_SCRIPT="$KAFKA_BIN_DIR/kafka-configs.sh"
 PRODUCER_SCRIPT="$KAFKA_BIN_DIR/kafka-console-producer.sh"
-LOADER_INIT_CONFIG_FILE="./loader_init_config.json"
+LOADER_INIT_CONFIG_FILE="./loader_init_config.template"
 # When set to 1, the script will output detailed information on all existing Kafka topics
 VERBOSE_TOPICS_AFTER=${VERBOSE_TOPICS_AFTER:-0}
 # When set to 1, existing topics will be updated with the target configurations
