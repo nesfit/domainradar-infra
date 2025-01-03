@@ -7,6 +7,8 @@ KAFKA_BIN_DIR=${KAFKA_BIN_DIR:-/opt/kafka/bin}
 COMMAND_CONFIG_FILE=${COMMAND_CONFIG_FILE:-client.properties}
 TOPICS_SCRIPT="$KAFKA_BIN_DIR/kafka-topics.sh"
 CONFIGS_SCRIPT="$KAFKA_BIN_DIR/kafka-configs.sh"
+PRODUCER_SCRIPT="$KAFKA_BIN_DIR/kafka-console-producer.sh"
+LOADER_INIT_CONFIG_FILE="./loader_init_config.json"
 # When set to 1, the script will output detailed information on all existing Kafka topics
 VERBOSE_TOPICS_AFTER=${VERBOSE_TOPICS_AFTER:-0}
 # When set to 1, existing topics will be updated with the target configurations
@@ -113,12 +115,12 @@ EXISTING_TOPICS=$($TOPICS_SCRIPT --bootstrap-server "$BOOTSTRAP" --command-confi
 
 # Check if a topic exists
 topic_exists() {
-    local topic=$1
-    if echo "$EXISTING_TOPICS" | grep -q "^$topic$"; then
-        return 0 # = true
-    else
-        return 1 # = false
-    fi
+  local topic=$1
+  if echo "$EXISTING_TOPICS" | grep -q "^$topic$"; then
+      return 0 # = true
+  else
+      return 1 # = false
+  fi
 }
 
 SKIP_AFTER="yes"
@@ -129,26 +131,37 @@ echo "-------"
 
 top_len=${#TOPICS[@]}
 for (( i=0; i<top_len; i=i+2 )); do
-    topic="${TOPICS[$i]}";
-    partitions="${TOPICS[$((i+1))]}";
+  topic="${TOPICS[$i]}";
+  partitions="${TOPICS[$((i+1))]}";
 
-    if ! topic_exists "$topic"; then
-        SKIP_AFTER="no"
-        echo "Creating topic: $topic ($partitions partitions)."
-        $TOPICS_SCRIPT --create --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" \
-          --replication-factor 1 --partitions "$partitions" --topic "$topic" $(get_configs "$topic" add)
-    else
-      if [[ $UPDATE_EXISTING_TOPICS -eq 1 ]]; then
-          echo "Updating settings for topic: $topic."
-          $CONFIGS_SCRIPT --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" \
-            --entity-type topics --entity-name "$topic" --alter $(get_configs "$topic")
-      fi
-      if [[ $UPDATE_PARTITIONING -eq 1 ]]; then
-          echo "Altering number of partitions for topic: $topic."
-          $TOPICS_SCRIPT --alter --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" \
-            --partitions "$partitions" --topic "$topic"
+  if ! topic_exists "$topic"; then
+    SKIP_AFTER="no"
+    echo "Creating topic: $topic ($partitions partitions)."
+    $TOPICS_SCRIPT --create --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" \
+      --replication-factor 1 --partitions "$partitions" --topic "$topic" $(get_configs "$topic" add)
+
+    if [[ "$topic" == "configuration_states" ]]; then
+      # Send initial loader config (if provided)
+      if [ -f "$LOADER_INIT_CONFIG_FILE" ]; then
+        LOADER_INIT_CONFIG=$(tr -d '\n' < "$LOADER_INIT_CONFIG_FILE")
+        $PRODUCER_SCRIPT --bootstrap-server "$BOOTSTRAP" --producer.config "$COMMAND_CONFIG_FILE" \
+          --topic "configuration_states" --property "parse.key=true" --property "key.separator=^" <<< "loader^$LOADER_INIT_CONFIG"
+
+        echo "Published the initial component configuration"
       fi
     fi
+  else
+    if [[ $UPDATE_EXISTING_TOPICS -eq 1 ]]; then
+      echo "Updating settings for topic: $topic."
+      $CONFIGS_SCRIPT --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" \
+        --entity-type topics --entity-name "$topic" --alter $(get_configs "$topic")
+    fi
+    if [[ $UPDATE_PARTITIONING -eq 1 ]]; then
+      echo "Altering number of partitions for topic: $topic."
+      $TOPICS_SCRIPT --alter --bootstrap-server "$BOOTSTRAP" --command-config "$COMMAND_CONFIG_FILE" \
+        --partitions "$partitions" --topic "$topic"
+    fi
+  fi
 done
 
 if [[ "$SKIP_AFTER" = "yes" ]]; then

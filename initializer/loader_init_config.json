@@ -1,0 +1,46 @@
+{
+  "success": true,
+  "errors": null,
+  "message": null,
+  "currentConfig": {
+    "sources": [],
+    "filters": [
+      {
+        "type": "FileBlockListFilter",
+        "args": [],
+        "kwargs": {
+          "filter_result_action": 2,
+          "filename": "top100.blocklist"
+        }
+      },
+      {
+        "type": "CustomPostgresFilter",
+        "args": [],
+        "kwargs": {
+          "filter_name": "custom_filter",
+          "filter_result_action": 2,
+          "host": "postgres",
+          "port": 5432,
+          "username": "prefilter",
+          "password": "$$PASS_DB_PREFILTER$$",
+          "database": "domainradar",
+          "filter_table_name": "Custom_Prefilter",
+          "domains_table_name": "Custom_Prefiltered_Domain"
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "type": "PostgresOutput",
+        "args": [],
+        "kwargs": {
+          "host": "postgres",
+          "port": 5432,
+          "username": "prefilter",
+          "password": "$$PASS_DB_PREFILTER$$",
+          "database": "domainradar"
+        }
+      }
+    ]
+  }
+}
