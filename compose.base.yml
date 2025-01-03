@@ -40,7 +40,7 @@ services:
   # --- General infrastructure --- #
 
   kafka1:
-    image: docker.io/apache/kafka:3.8.0
+    image: docker.io/apache/kafka:3.8.1
     hostname: kafka1
     volumes:
       - kafka1-single-log:/var/lib/kafka/data
