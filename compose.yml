@@ -87,7 +87,7 @@ services:
     volumes:
       - ./client_properties/:/var/domainradar_properties/
       - ./client_properties/config_manager.toml:/app/config.toml
-      - /tmp/domrad_control.sock:/app/config_manager.sock
+      - ./domrad_control.sock:/app/config_manager.sock
 
   # --- Classifier --- #
 
