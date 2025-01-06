@@ -21,3 +21,16 @@ app_id = "$$ID_PREFIX$$-config-manager"
 configs_dir = "/var/domainradar_properties"
 use_socket = true
 socket_path = "/app/config_manager.sock"
+
+[manager.components]
+"collector-dns" = "dns.toml"
+"collector-zone" = "zone.toml"
+"collector-tls" = "tls.properties"
+"collector-nerd" = "nerd.properties"
+"collector-geo-asn" = "geo_asn.properties"
+"collector-rdap-dn" = "rdap_dn.toml"
+"collector-rdap-ip" = "rdap_ip.toml"
+"collector-rtt" = "rtt.toml"
+"fl-taskmanager" = "merger.properties"
+"extractor" = "extractor.toml"
+"classifier" = "classifier_unit.toml"
