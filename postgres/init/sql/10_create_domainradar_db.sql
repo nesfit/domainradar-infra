@@ -256,9 +256,8 @@ BEGIN
 
         INSERT INTO IP (ip, domain_id)
         VALUES (v_new_ip, r_domain_id)
-        ON CONFLICT (ip, domain_id) DO NOTHING;
-
-        SELECT id INTO r_ip_id FROM IP WHERE domain_id = r_domain_id AND ip = v_new_ip;
+        ON CONFLICT (ip, domain_id) DO NOTHING
+        RETURNING id INTO r_ip_id;
     ELSE
         r_ip_id := NULL;
     END IF;
@@ -312,6 +311,129 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION add_qradar_data(
+    p_domain_id BIGINT,
+    p_ip        TEXT,
+    p_timestamp TIMESTAMPTZ,
+    p_data      JSONB
+)
+    RETURNS VOID
+LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    v_data       JSONB;
+    v_offenses   JSONB;
+    v_offense    JSONB;
+    v_src_addr_id BIGINT;
+    v_inet       INET := NULLIF(p_ip, '')::INET;
+BEGIN
+    -- Extract the top-level "data" object
+    v_data := p_data -> 'data';
+    IF v_data IS NULL OR jsonb_typeof(v_data) != 'object' THEN
+        RETURN;
+    END IF;
+
+    -- Insert/update into QRadar_Offense_Source
+    INSERT INTO QRadar_Offense_Source (
+        id,
+        ip,
+        qradar_domain_id,
+        magnitude
+    )
+    VALUES (
+        (v_data ->> 'sourceAddressId')::BIGINT,
+        v_inet,
+        (v_data ->> 'qradarDomainId')::INTEGER,
+        COALESCE((v_data ->> 'magnitude')::REAL, 0.0)
+    )
+    ON CONFLICT (id) DO UPDATE
+        SET ip               = EXCLUDED.ip,
+            qradar_domain_id = EXCLUDED.qradar_domain_id,
+            magnitude        = EXCLUDED.magnitude
+    RETURNING id INTO v_src_addr_id;
+
+    -- Process offenses array
+    v_offenses := v_data -> 'offenses';
+    IF v_offenses IS NULL OR jsonb_typeof(v_offenses) != 'array' THEN
+        RETURN;
+    END IF;
+
+    -- Loop through each offense
+    FOR v_offense IN
+        SELECT value
+        FROM jsonb_array_elements(v_offenses) AS t(value)
+    LOOP
+        BEGIN
+            INSERT INTO QRadar_Offense (
+                id,
+                "description",
+                event_count,
+                flow_count,
+                device_count,
+                severity,
+                magnitude,
+                last_updated_time,
+                "status"
+            )
+            VALUES (
+                (v_offense ->> 'id')::BIGINT,
+                v_offense ->> 'description',
+                (v_offense ->> 'eventCount')::INTEGER,
+                (v_offense ->> 'flowCount')::INTEGER,
+                (v_offense ->> 'deviceCount')::INTEGER,
+                (v_offense ->> 'severity')::REAL,
+                (v_offense ->> 'magnitude')::REAL,
+                (timestamptz 'epoch' + (
+                    ((v_offense ->> 'lastUpdatedTime')::BIGINT)
+                    * interval '1 millisecond'
+                )),
+                v_offense ->> 'status'
+            )
+            ON CONFLICT (id) DO UPDATE
+                SET "description"     = EXCLUDED.description,
+                    event_count       = EXCLUDED.event_count,
+                    flow_count        = EXCLUDED.flow_count,
+                    device_count      = EXCLUDED.device_count,
+                    severity          = EXCLUDED.severity,
+                    magnitude         = EXCLUDED.magnitude,
+                    last_updated_time = EXCLUDED.last_updated_time,
+                    "status"          = EXCLUDED.status;
+
+            INSERT INTO QRadar_Offense_In_Source (
+                offense_source_id,
+                offense_id
+            )
+            VALUES (
+                v_src_addr_id,
+                (v_offense ->> 'id')::BIGINT
+            )
+            ON CONFLICT (offense_id, offense_source_id) DO NOTHING;
+
+        EXCEPTION
+            WHEN OTHERS THEN
+                INSERT INTO Domain_Errors (
+                    domain_id,
+                    timestamp,
+                    source,
+                    error,
+                    sql_error_code,
+                    sql_error_message
+                )
+                VALUES (
+                    p_domain_id,
+                    now(),
+                    'add_qradar_data',
+                    'Cannot process QRadar offense data.',
+                    SQLSTATE,
+                    SQLERRM
+                );
+                RETURN;
+        END;
+    END LOOP;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION insert_collection_result()
     RETURNS trigger AS
 $$
@@ -344,8 +466,18 @@ BEGIN
             v_deserialized_data := NULL;
     END;
 
+    -- Handle QRadar data
+    IF NEW.collector = 'qradar' THEN
+        PERFORM add_qradar_data(v_domain_id, NEW.ip, v_timestamp, v_deserialized_data);
+        RETURN NULL; -- Stop further processing, no Collection_Result insert
+    END IF;
+
     -- Check collector
-    SELECT id, is_ip_collector INTO v_collector_id, v_collector_for_ip FROM Collector WHERE collector = NEW.collector;
+    SELECT id, is_ip_collector 
+    INTO v_collector_id, v_collector_for_ip 
+    FROM Collector 
+    WHERE collector = NEW.collector;
+    
     IF v_collector_id IS NULL THEN
         INSERT INTO Domain_Errors (domain_id, timestamp, source, error, sql_error_code, sql_error_message)
         VALUES (v_domain_id, v_timestamp, 'insert_collection_result',
