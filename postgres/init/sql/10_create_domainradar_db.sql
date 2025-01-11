@@ -325,6 +325,8 @@ DECLARE
     v_data       JSONB;
     v_offenses   JSONB;
     v_offense    JSONB;
+    v_all_source_addresses JSONB;
+    v_source_address_ip_id JSONB;
     v_src_addr_id BIGINT;
     v_inet       INET := NULLIF(p_ip, '')::INET;
 BEGIN
@@ -335,12 +337,7 @@ BEGIN
     END IF;
 
     -- Insert/update into QRadar_Offense_Source
-    INSERT INTO QRadar_Offense_Source (
-        id,
-        ip,
-        qradar_domain_id,
-        magnitude
-    )
+    INSERT INTO QRadar_Offense_Source (id, ip, qradar_domain_id, magnitude)
     VALUES (
         (v_data ->> 'sourceAddressId')::BIGINT,
         v_inet,
@@ -350,8 +347,7 @@ BEGIN
     ON CONFLICT (id) DO UPDATE
         SET ip               = EXCLUDED.ip,
             qradar_domain_id = EXCLUDED.qradar_domain_id,
-            magnitude        = EXCLUDED.magnitude
-    RETURNING id INTO v_src_addr_id;
+            magnitude        = EXCLUDED.magnitude;
 
     -- Process offenses array
     v_offenses := v_data -> 'offenses';
@@ -400,16 +396,29 @@ BEGIN
                     last_updated_time = EXCLUDED.last_updated_time,
                     "status"          = EXCLUDED.status;
 
-            INSERT INTO QRadar_Offense_In_Source (
-                offense_source_id,
-                offense_id
-            )
-            VALUES (
-                v_src_addr_id,
-                (v_offense ->> 'id')::BIGINT
-            )
-            ON CONFLICT (offense_id, offense_source_id) DO NOTHING;
+            -- Process sourceAddressIds nested array to insert additional offense sources
+            -- and link the offenses to these sources
+            v_all_source_addresses := v_offense -> 'sourceAddressIds';
+            IF v_all_source_addresses IS NULL OR jsonb_typeof(v_all_source_addresses) != 'array' THEN
+                RETURN;
+            END IF;
 
+            FOR v_source_address_ip_id IN
+                SELECT value
+                FROM jsonb_array_elements(v_all_source_addresses) AS t(value)
+            LOOP
+                BEGIN
+                    v_src_addr_id := v_source_address_ip_id::BIGINT;
+
+                    INSERT INTO QRadar_Offense_Source (id, ip, qradar_domain_id, magnitude)
+                    VALUES (v_src_addr_id, NULL, -1, -1.0)
+                    ON CONFLICT (id) DO NOTHING;
+
+                    INSERT INTO QRadar_Offense_In_Source (offense_source_id, offense_id)
+                    VALUES (v_src_addr_id, (v_offense ->> 'id')::BIGINT)
+                    ON CONFLICT (offense_id, offense_source_id) DO NOTHING;
+                END;
+            END LOOP;
         EXCEPTION
             WHEN OTHERS THEN
                 INSERT INTO Domain_Errors (
@@ -467,9 +476,8 @@ BEGIN
     END;
 
     -- Handle QRadar data
-    IF NEW.collector = 'qradar' THEN
+    IF NEW.collector = 'qradar' AND NEW.status_code = 0 THEN
         PERFORM add_qradar_data(v_domain_id, NEW.ip, v_timestamp, v_deserialized_data);
-        RETURN NULL; -- Stop further processing, no Collection_Result insert
     END IF;
 
     -- Check collector
@@ -486,7 +494,7 @@ BEGIN
     END IF;
 
     -- Update IP data
-    IF v_ip_id IS NOT NULL AND v_deserialized_data IS NOT NULL THEN
+    IF v_collector_for_ip AND v_ip_id IS NOT NULL AND v_deserialized_data IS NOT NULL THEN
         PERFORM update_ip_data(v_ip_id,
                                NEW.collector,
                                v_deserialized_data,

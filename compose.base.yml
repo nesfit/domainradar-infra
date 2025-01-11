@@ -266,6 +266,7 @@ networks:
   kafka-clients:
     driver: bridge
     enable_ipv6: false
+    # Note: on rootful podman, internal: true breaks DNS
     internal: true
     ipam:
       config:
@@ -275,6 +276,7 @@ networks:
   databases:
     driver: bridge
     enable_ipv6: false
+    # Note: on rootful podman, internal: true breaks DNS
     internal: true
     ipam:
       config:
