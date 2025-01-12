@@ -183,6 +183,16 @@ services:
       - CAP_NET_RAW
       - CAP_NET_ADMIN
 
+  collector-qradar:
+    <<: *java-cpc-collector
+    command: [ "--col-qradar", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/qradar.properties:/app/client.properties
+      - ./client_properties/log4j2-qradar.xml:/app/log4j2.xml
+
   # --- Extractor and classifier #
 
   extractor:
