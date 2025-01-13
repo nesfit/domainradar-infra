@@ -41,6 +41,7 @@ TOPICS=(to_process_zone $COLLECTOR_PARALLELISM \
         processed_DNS   $MERGER_PARALLELISM \
         processed_TLS   $MERGER_PARALLELISM \
         processed_RDAP_DN  $MERGER_PARALLELISM \
+        processed_QRadar   $MERGER_PARALLELISM \
         collected_IP_data  $MERGER_PARALLELISM \
         all_collected_data $EXTRACTOR_PARALLELISM \
         feature_vectors    $CLASSIFIER_PARALLELISM \
