@@ -252,7 +252,13 @@ BEGIN
 
     -- Insert or get IP
     IF p_ip IS NOT NULL THEN
-        v_new_ip := CAST(p_ip as INET);
+        -- Safe cast to inet (a collector result might be INVALID_ADDRESS)
+        BEGIN
+            v_new_ip := CAST(p_ip as INET);
+        EXCEPTION
+            WHEN OTHERS THEN
+                v_new_ip := '0.0.0.0'::INET;
+        END;
 
         INSERT INTO IP (ip, domain_id)
         VALUES (v_new_ip, r_domain_id)
