@@ -1,4 +1,6 @@
 FROM domrad/kafka-connect:latest
+# This seems to work on podman:
+# FROM containers-storage:localhost/domrad/kafka-connect:latest
 
 WORKDIR /opt/kafka-connect/plugins
 
