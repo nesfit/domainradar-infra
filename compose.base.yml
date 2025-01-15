@@ -1,14 +1,19 @@
 x-scaling:
   collectors-python: &scale-py-collectors
     scale: ${COLLECTORS_PY_SCALE:-1}
+    mem_limit: "${COLLECTORS_PY_MEM_LIMIT:-512mb}"
   collectors-java-cpc: &scale-java-cpc-collectors
     scale: ${COLLECTORS_JAVA_CPC_SCALE:-1}
+    mem_limit: "${COLLECTORS_JAVA_CPC_MEM_LIMIT:-1024mb}"
   extractor: &scale-extractor
     scale: ${EXTRACTOR_SCALE:-1}
+    mem_limit: "${EXTRACTOR_MEM_LIMIT:-1024mb}"
   classifier: &scale-classifier
     scale: ${CLASSIFIER_SCALE:-1}
+    mem_limit: "${CLASSIFIER_MEM_LIMIT:-2gb}"
   flink-taskmanager: &scale-taskmanager
     scale: ${FLINK_TASKMANAGER_SCALE:-1}
+    mem_limit: "${FLINK_TASKMANAGER_CONTAINER_MEM_LIMIT:-2gb}"
 
 x-base-service-definitions: 
   python: &python-collector
@@ -41,6 +46,7 @@ services:
 
   kafka1:
     image: docker.io/apache/kafka:3.8.1
+    mem_limit: "${KAFKA_MEM_LIMIT:-2gb}"
     hostname: kafka1
     volumes:
       - kafka1-single-log:/var/lib/kafka/data

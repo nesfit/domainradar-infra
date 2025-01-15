@@ -111,6 +111,7 @@ services:
 
   postgres:
     image: docker.io/postgres:16
+    mem_limit: "${POSTGRES_MEM_LIMIT:-2gb}"
     restart: always
     secrets:
       - postgres_master_password
