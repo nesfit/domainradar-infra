@@ -14,7 +14,7 @@ check_hostname = true
 "session.timeout.ms" = 10000
 
 [producer]
-"compression.codec" = "zstd"
+"compression.codec" = "none"
 
 [manager]
 app_id = "$$ID_PREFIX$$-config-manager"
