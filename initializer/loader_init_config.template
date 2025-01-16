@@ -9,6 +9,7 @@
         "type": "FileBlockListFilter",
         "args": [],
         "kwargs": {
+          "filter_name": "top_100_blocklist",
           "filter_result_action": 2,
           "filename": "top100.blocklist"
         }
@@ -24,8 +25,8 @@
           "username": "prefilter",
           "password": "$$PASS_DB_PREFILTER$$",
           "database": "domainradar",
-          "filter_table_name": "Custom_Prefilter",
-          "domains_table_name": "Custom_Prefiltered_Domain"
+          "filter_table_name": "custom_prefilter",
+          "domains_table_name": "custom_prefiltered_domain"
         }
       }
     ],
