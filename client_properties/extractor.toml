@@ -1,22 +1,81 @@
 [connection]
-brokers = ["aiokafka://kafka1:9093"]
+brokers = ["kafka1:9093"]
 use_ssl = true
 
 [connection.ssl]
 ca_file = "/run/secrets/ca-cert"
-server_verification_required = true
 client_cert_file = "/run/secrets/extractor-cert"
 client_key_file = "/run/secrets/extractor-key"
 client_key_password = "$$PASS_KEY_EXTRACTOR$$"
 check_hostname = true
 
-[extractor.faust]
-producer_compression_type = "zstd"
+[consumer]
+"session.timeout.ms" = 10000
+"auto.commit.interval.ms" = 3000
+"broker.address.family" = "v4"
+
+[producer]
+"compression.codec" = "zstd"
+"linger.ms" = 1000
+"batch.num.messages" = 10000
+"request.required.acks" = "all"
+"message.send.max.retries" = 100
+"broker.address.family" = "v4"
+
+[client]
+app_id = "$$ID_PREFIX$$-extractor"
+mp_start_method = "forkserver"
+workers = $$WORKERS_EXTRACTOR$$
+poll_timeout = 2.0
+worker_kill_timeout = 10.0
+liveliness_check_interval = 10.0
+init_wait = 1.0
+# How long an entry can wait in the to-process queue before a warning is logged (seconds)
+entry_late_warning_threshold = 15
+# How long an entry can wait in the to-process queue before the whole system gives up (seconds)
+max_entry_time_in_queue = 60
+# The maximum input queue size
+max_queued_items = 30
+# After reaching the maximum input queue size specified above, this number of input entries must be processed
+# and produced before new items are added to the queue
+resume_after_freed_items = 5
+# The maximum number of items to retrieve from the processed queue in a single cycle (livelock prevention threshold)
+max_entries_to_confirm = 20
+# Whether to use rate limiting
+enable_rate_limiter = false
 
 [extractor]
-app_id = "$$ID_PREFIX$$-extractor"
 batch_size = 50
 batch_timeout = 5
 data_dir = "/app/data"
 produce_jsons = true
 only_produce_jsons = false
+
+# ==== Logging ==== #
+[logging]
+version = 1
+disable_existing_loggers = true
+worker_level = "TRACE"
+
+[logging.formatters.simple]
+class = "logging.Formatter"
+format = "[%(name)s][%(process)s|%(processName)s][%(levelname)s]\t%(asctime)s: %(message)s"
+
+[logging.formatters.extra]
+class = "common.log.ExtraFormatter"
+
+[logging.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+level = "TRACE"
+stream = "ext://sys.stdout"
+
+[logging.handlers.err]
+class = "logging.StreamHandler"
+formatter = "simple"
+level = "WARNING"
+stream = "ext://sys.stderr"
+
+[logging.root]
+handlers = ["console", "err"]
+level = "INFO"

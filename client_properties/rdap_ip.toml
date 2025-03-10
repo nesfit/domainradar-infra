@@ -1,19 +1,88 @@
 [connection]
-brokers = ["aiokafka://kafka1:9093"]
+brokers = ["kafka1:9093"]
 use_ssl = true
 
 [connection.ssl]
 ca_file = "/run/secrets/ca-cert"
-server_verification_required = true
 client_cert_file = "/run/secrets/collector-cert"
 client_key_file = "/run/secrets/collector-key"
 client_key_password = "$$PASS_KEY_COLLECTOR$$"
 check_hostname = true
 
-[rdap_ip.faust]
-producer_compression_type = "zstd"
+[consumer]
+"session.timeout.ms" = 10000
+"auto.commit.interval.ms" = 3000
+"broker.address.family" = "v4"
 
-[rdap_ip]
+[producer]
+"compression.codec" = "zstd"
+"linger.ms" = 1000
+"batch.num.messages" = 10000
+"request.required.acks" = "all"
+"message.send.max.retries" = 100
+"broker.address.family" = "v4"
+
+[client]
 app_id = "$$ID_PREFIX$$-rdap-ip"
-debug = false
-http_timeout_sec = 5
+mp_start_method = "forkserver"
+workers = $$WORKERS_RDAP_IP$$
+poll_timeout = 2.0
+worker_kill_timeout = 10.0
+liveliness_check_interval = 10.0
+init_wait = 1.0
+# How long an entry can wait in the to-process queue before a warning is logged (seconds)
+entry_late_warning_threshold = 40
+# How long an entry can wait in the to-process queue before the whole system gives up (seconds)
+max_entry_time_in_queue = 120
+# The maximum input queue size
+max_queued_items = 30
+# After reaching the maximum input queue size specified above, this number of input entries must be processed
+# and produced before new items are added to the queue
+resume_after_freed_items = 5
+# The maximum number of items to retrieve from the processed queue in a single cycle (livelock prevention threshold)
+max_entries_to_confirm = 20
+# Whether to use rate limiting
+enable_rate_limiter = true
+# Redis URI for rate limiting (may be empty if the above is 'false')
+redis_uri = "redis://redis:6379"
+
+[rdap-ip]
+# RDAP request timeout (seconds).
+http_timeout = 5
+
+# ==== Local Rate Limiting ==== #
+[rate_limiter.default]
+immediate = true
+max_wait = 20
+rates = [
+    { requests = 15, interval_ms = 1000 }
+]
+
+# ==== Logging ==== #
+[logging]
+version = 1
+disable_existing_loggers = true
+worker_level = "TRACE"
+
+[logging.formatters.simple]
+class = "logging.Formatter"
+format = "[%(name)s][%(process)s|%(processName)s][%(levelname)s]\t%(asctime)s: %(message)s"
+
+[logging.formatters.extra]
+class = "common.log.ExtraFormatter"
+
+[logging.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+level = "TRACE"
+stream = "ext://sys.stdout"
+
+[logging.handlers.err]
+class = "logging.StreamHandler"
+formatter = "simple"
+level = "WARNING"
+stream = "ext://sys.stderr"
+
+[logging.root]
+handlers = ["console", "err"]
+level = "INFO"
