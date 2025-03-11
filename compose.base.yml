@@ -18,18 +18,20 @@ x-scaling:
 x-base-service-definitions: 
   python: &python-collector
     <<: *scale-py-collectors
-    restart: always
+    restart: unless-stopped
     depends_on:
       initializer:
         condition: service_completed_successfully
     networks:
       - kafka-clients
       - collectors
+    environment:
+      - APP_CONFIG_FILE=/app/config.toml
 
   java-cpc: &java-cpc-collector
     <<: *scale-java-cpc-collectors
-    restart: always
     image: domrad/java-standalone
+    restart: unless-stopped
     entrypoint: [ "java", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
     depends_on:
       initializer:
@@ -44,6 +46,7 @@ services:
 
   kafka1:
     image: docker.io/apache/kafka:3.8.1
+    restart: always
     mem_limit: "${KAFKA_MEM_LIMIT:-2gb}"
     hostname: kafka1
     volumes:
@@ -64,6 +67,7 @@ services:
 
   kafka-ui:
     image: ghcr.io/kafbat/kafka-ui:latest
+    restart: unless-stopped
     depends_on:
       - kafka1
     secrets:
@@ -157,6 +161,11 @@ services:
   collector-rdap-dn:
     <<: *python-collector
     image: domrad/rdap-dn
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
     secrets:
       - ca-cert
       - collector-cert
@@ -167,6 +176,11 @@ services:
   collector-rdap-ip:
     <<: *python-collector
     image: domrad/rdap-ip
+    depends_on:
+      initializer:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
     secrets:
       - ca-cert
       - collector-cert
@@ -205,7 +219,7 @@ services:
     depends_on:
       initializer:
         condition: service_completed_successfully
-    restart: always
+    restart: unless-stopped
     secrets:
       - ca-cert
       - extractor-cert
@@ -216,6 +230,8 @@ services:
     volumes:
       - ./client_properties/extractor.toml:/app/config.toml
       - ./data/extractor/:/app/data/
+    environment:
+      - APP_CONFIG_FILE=/app/config.toml
 
   # --- Flink --- #
 
@@ -224,7 +240,7 @@ services:
     depends_on:
       initializer:
         condition: service_completed_successfully
-    restart: always
+    restart: unless-stopped
     ports:
      - "31020:8081"
     command: ["standalone-job", "--job-classname", "cz.vut.fit.domainradar.DataStreamJob",
@@ -252,7 +268,7 @@ services:
     image: domrad/merger-flink
     depends_on:
       - fl-jobmanager
-    restart: always
+    restart: unless-stopped
     command: taskmanager
     volumes:
       - ./client_properties/merger.properties:/opt/merger-flink.properties
@@ -270,9 +286,19 @@ services:
     networks:
       kafka-clients: {}
 
+  # --- Redis --- #
+  redis:
+    image: docker.io/redis/redis-stack-server:7.4.0-v3
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data/
+    networks:
+      - collectors
+
 volumes:
   kafka1-single-log: {}
   flink-data: {}
+  redis-data: {}
 
 networks:
   kafka-clients:

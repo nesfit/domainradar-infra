@@ -106,6 +106,8 @@ services:
       - kafka-clients
     volumes:
       - ./client_properties/classifier_unit.toml:/app/config.toml
+    environment:
+      - APP_CONFIG_FILE=/app/config.toml
 
   # --- Databases --- #
 
