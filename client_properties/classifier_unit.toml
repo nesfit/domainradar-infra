@@ -42,10 +42,10 @@ resume_after_freed_items = 5
 # The maximum number of items to retrieve from the processed queue in a single cycle (livelock prevention threshold)
 max_entries_to_confirm = 20
 
-classifier_impl = "dummy"
+classifier_impl = "production"
 
 [production-classifier]
-base_dir = "/opt/pysetup/.venv/lib/python3.11/site-packages/classifiers"
+base_dir = "/app/classifiers/classifiers"
 
 # ==== Logging ==== #
 [logging]
