@@ -31,9 +31,9 @@ worker_kill_timeout = 10.0
 liveliness_check_interval = 10.0
 init_wait = 1.0
 # How long an entry can wait in the to-process queue before a warning is logged (seconds)
-entry_late_warning_threshold = 15
+entry_late_warning_threshold = 24
 # How long an entry can wait in the to-process queue before the whole system gives up (seconds)
-max_entry_time_in_queue = 60
+max_entry_time_in_queue = 80
 # The maximum input queue size
 max_queued_items = 30
 # After reaching the maximum input queue size specified above, this number of input entries must be processed

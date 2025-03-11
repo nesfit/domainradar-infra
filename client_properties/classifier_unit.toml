@@ -29,7 +29,7 @@ workers = $$WORKERS_CLASSIFIER$$
 poll_timeout = 2.0
 worker_kill_timeout = 10.0
 liveliness_check_interval = 10.0
-init_wait = 1.0
+init_wait = 15.0
 # How long an entry can wait in the to-process queue before a warning is logged (seconds)
 entry_late_warning_threshold = 15
 # How long an entry can wait in the to-process queue before the whole system gives up (seconds)
