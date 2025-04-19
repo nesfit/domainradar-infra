@@ -37,12 +37,14 @@ TOPICS=(to_process_zone $COLLECTOR_PARALLELISM \
         to_process_TLS  $COLLECTOR_PARALLELISM \
         to_process_RDAP_DN $COLLECTOR_PARALLELISM \
         to_process_IP   $IP_COLLECTOR_PARALLELISM \
+        to_process_DN   $COLLECTOR_PARALLELISM \
         processed_zone  $MERGER_PARALLELISM \
         processed_DNS   $MERGER_PARALLELISM \
         processed_TLS   $MERGER_PARALLELISM \
         processed_RDAP_DN  $MERGER_PARALLELISM \
         processed_QRadar   $MERGER_PARALLELISM \
         collected_IP_data  $MERGER_PARALLELISM \
+        collected_DN_data  $MERGER_PARALLELISM \
         all_collected_data $EXTRACTOR_PARALLELISM \
         feature_vectors    $CLASSIFIER_PARALLELISM \
         # These may also have more partitions to increase the scalability of the Connect sinks.
@@ -64,7 +66,8 @@ get_configs() {
 
   if [[ $topic == to_process_* ]] || \
      [[ $topic == processed_* ]] || \
-     [[ $topic == "collected_IP_data" ]]; then
+     [[ $topic == "collected_IP_data" ]] || \
+     [[ $topic == "collected_DN_data" ]]; then
     # 1 day
     config="cleanup.policy=delete,retention.ms=86400000"
     #
