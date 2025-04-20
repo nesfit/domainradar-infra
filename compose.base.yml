@@ -165,6 +165,16 @@ services:
       - ./client_properties/virustotal.properties:/app/client.properties
       - ./client_properties/log4j2-virustotal.xml:/app/log4j2.xml
 
+  collector-pulsedive:
+    <<: *java-cpc-collector
+    command: [ "--col-pulsedive", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/pulsedive.properties:/app/client.properties
+      - ./client_properties/log4j2-pulsedive.xml:/app/log4j2.xml
+
   collector-hybridanalysis:
     <<: *java-cpc-collector
     command: [ "--col-hybridanalysis", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
