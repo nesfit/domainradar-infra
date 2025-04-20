@@ -205,6 +205,16 @@ services:
       - ./client_properties/opentip_kaspersky.properties:/app/client.properties
       - ./client_properties/log4j2-opentip_kaspersky.xml:/app/log4j2.xml
 
+  collector-threatfox:
+    <<: *java-cpc-collector
+    command: [ "--col-threatfox", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/threatfox.properties:/app/client.properties
+      - ./client_properties/log4j2-threatfox.xml:/app/log4j2.xml
+
   collector-google-safe-browsing:
     <<: *java-cpc-collector
     command: [ "--col-googlesafebrowsing", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
