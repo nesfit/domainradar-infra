@@ -235,6 +235,16 @@ services:
       - ./client_properties/google_safe_browsing.properties:/app/client.properties
       - ./client_properties/log4j2-google_safe_browsing.xml:/app/log4j2.xml
 
+  collector-fortiguard:
+    <<: *java-cpc-collector
+    command: [ "--col-fortiguard", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/fortiguard.properties:/app/client.properties
+      - ./client_properties/log4j2-fortiguard.xml:/app/log4j2.xml
+
   collector-urlvoid:
     <<: *java-cpc-collector
     command: [ "--col-urlvoid", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
