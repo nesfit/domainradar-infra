@@ -145,6 +145,16 @@ services:
       - ./client_properties/nerd.properties:/app/client.properties
       - ./client_properties/log4j2-nerd.xml:/app/log4j2.xml
 
+  collector-abuseipdb:
+    <<: *java-cpc-collector
+    command: [ "--col-abuseipdb", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/abuseipdb.properties:/app/client.properties
+      - ./client_properties/log4j2-abuseipdb.xml:/app/log4j2.xml
+
   collector-geo-asn:
     <<: *java-cpc-collector
     command: [ "--col-geo", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
