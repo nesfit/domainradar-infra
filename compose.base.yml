@@ -175,6 +175,16 @@ services:
       - ./client_properties/hybridanalysis.properties:/app/client.properties
       - ./client_properties/log4j2-hybridanalysis.xml:/app/log4j2.xml
 
+  collector-greynoise:
+    <<: *java-cpc-collector
+    command: [ "--col-greynoise", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/greynoise.properties:/app/client.properties
+      - ./client_properties/log4j2-greynoise.xml:/app/log4j2.xml
+
   collector-cloudflare-radar:
     <<: *java-cpc-collector
     command: [ "--col-cloudflareradar", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
