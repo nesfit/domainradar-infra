@@ -215,6 +215,16 @@ services:
       - ./client_properties/threatfox.properties:/app/client.properties
       - ./client_properties/log4j2-threatfox.xml:/app/log4j2.xml
 
+  collector-criminalip:
+    <<: *java-cpc-collector
+    command: [ "--col-criminalip", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/criminalip.properties:/app/client.properties
+      - ./client_properties/log4j2-criminalip.xml:/app/log4j2.xml
+
   collector-google-safe-browsing:
     <<: *java-cpc-collector
     command: [ "--col-googlesafebrowsing", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
