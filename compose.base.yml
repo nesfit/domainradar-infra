@@ -185,6 +185,16 @@ services:
       - ./client_properties/cloudflare_radar.properties:/app/client.properties
       - ./client_properties/log4j2-cloudflare_radar.xml:/app/log4j2.xml
 
+  collector-opentip-kaspersky:
+    <<: *java-cpc-collector
+    command: [ "--col-opentipkaspersky", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/opentip_kaspersky.properties:/app/client.properties
+      - ./client_properties/log4j2-opentip_kaspersky.xml:/app/log4j2.xml
+
   collector-geo-asn:
     <<: *java-cpc-collector
     command: [ "--col-geo", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
