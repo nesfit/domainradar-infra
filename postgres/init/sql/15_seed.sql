@@ -7,6 +7,27 @@ INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (50, 'zone'
 INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (60, 'dns', false);
 INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (70, 'tls', false);
 INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (80, 'rdap-dn', false);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (90, 'abuseipdb', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (100, 'virustotal-ip', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (110, 'pulsedive-ip', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (120, 'hybrid-analysis-ip', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (130, 'greynoise', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (140, 'cloudflare-radar-ip', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (150, 'opentip-kaspersky-ip', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (160, 'threatfox-ip', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (170, 'criminalip', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (180, 'google-safe-browsing-ip', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (190, 'fortiguard-ip', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (200, 'project-honeypot', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (210, 'virustotal-dn', false);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (220, 'cloudflare-radar-dn', false);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (230, 'opentip-kaspersky-dn', false);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (240, 'threatfox-dn', false);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (250, 'google-safe-browsing-dn', false);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (260, 'fortiguard-dn', false);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (270, 'urlvoid', false);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (280, 'pulsedive-dn', false);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (290, 'hybrid-analysis-dn', false);
 INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (1000, 'qradar', true);
 
 -- Collector result codes
