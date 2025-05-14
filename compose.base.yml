@@ -145,6 +145,136 @@ services:
       - ./client_properties/nerd.properties:/app/client.properties
       - ./client_properties/log4j2-nerd.xml:/app/log4j2.xml
 
+  collector-abuseipdb:
+    <<: *java-cpc-collector
+    command: [ "--col-abuseipdb", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/abuseipdb.properties:/app/client.properties
+      - ./client_properties/log4j2-abuseipdb.xml:/app/log4j2.xml
+
+  collector-virustotal:
+    <<: *java-cpc-collector
+    command: [ "--col-virustotal", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/virustotal.properties:/app/client.properties
+      - ./client_properties/log4j2-virustotal.xml:/app/log4j2.xml
+
+  collector-pulsedive:
+    <<: *java-cpc-collector
+    command: [ "--col-pulsedive", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/pulsedive.properties:/app/client.properties
+      - ./client_properties/log4j2-pulsedive.xml:/app/log4j2.xml
+
+  collector-hybridanalysis:
+    <<: *java-cpc-collector
+    command: [ "--col-hybridanalysis", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/hybridanalysis.properties:/app/client.properties
+      - ./client_properties/log4j2-hybridanalysis.xml:/app/log4j2.xml
+
+  collector-greynoise:
+    <<: *java-cpc-collector
+    command: [ "--col-greynoise", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/greynoise.properties:/app/client.properties
+      - ./client_properties/log4j2-greynoise.xml:/app/log4j2.xml
+
+  collector-cloudflare-radar:
+    <<: *java-cpc-collector
+    command: [ "--col-cloudflareradar", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/cloudflare_radar.properties:/app/client.properties
+      - ./client_properties/log4j2-cloudflare_radar.xml:/app/log4j2.xml
+
+  collector-opentip-kaspersky:
+    <<: *java-cpc-collector
+    command: [ "--col-opentipkaspersky", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/opentip_kaspersky.properties:/app/client.properties
+      - ./client_properties/log4j2-opentip_kaspersky.xml:/app/log4j2.xml
+
+  collector-threatfox:
+    <<: *java-cpc-collector
+    command: [ "--col-threatfox", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/threatfox.properties:/app/client.properties
+      - ./client_properties/log4j2-threatfox.xml:/app/log4j2.xml
+
+  collector-criminalip:
+    <<: *java-cpc-collector
+    command: [ "--col-criminalip", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/criminalip.properties:/app/client.properties
+      - ./client_properties/log4j2-criminalip.xml:/app/log4j2.xml
+
+  collector-google-safe-browsing:
+    <<: *java-cpc-collector
+    command: [ "--col-googlesafebrowsing", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/google_safe_browsing.properties:/app/client.properties
+      - ./client_properties/log4j2-google_safe_browsing.xml:/app/log4j2.xml
+
+  collector-fortiguard:
+    <<: *java-cpc-collector
+    command: [ "--col-fortiguard", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/fortiguard.properties:/app/client.properties
+      - ./client_properties/log4j2-fortiguard.xml:/app/log4j2.xml
+
+  collector-urlvoid:
+    <<: *java-cpc-collector
+    command: [ "--col-urlvoid", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/urlvoid.properties:/app/client.properties
+      - ./client_properties/log4j2-urlvoid.xml:/app/log4j2.xml
+
+  collector-project-honeypot:
+    <<: *java-cpc-collector
+    command: [ "--col-projecthoneypot", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
+    secrets:
+      - kafka-truststore
+      - collector-keystore
+    volumes:
+      - ./client_properties/project_honeypot.properties:/app/client.properties
+      - ./client_properties/log4j2-project_honeypot.xml:/app/log4j2.xml
+
   collector-geo-asn:
     <<: *java-cpc-collector
     command: [ "--col-geo", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
