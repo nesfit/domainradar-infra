@@ -247,8 +247,8 @@ BEGIN
     SELECT id
     INTO r_domain_id
     FROM Domain
-    WHERE domain_name = p_domain_name
-        FOR KEY SHARE;
+    WHERE domain_name = p_domain_name;
+        -- FOR KEY SHARE;
 
     IF NOT FOUND THEN
         INSERT INTO Domain (domain_name, last_update)
@@ -260,8 +260,8 @@ BEGIN
             SELECT id
             INTO r_domain_id
             FROM Domain
-            WHERE domain_name = p_domain_name
-                FOR KEY SHARE;
+            WHERE domain_name = p_domain_name;
+                -- FOR KEY SHARE;
         END IF;
     END IF;
 
@@ -284,8 +284,8 @@ BEGIN
             SELECT id
             INTO r_ip_id
             FROM IP
-            WHERE domain_id = r_domain_id AND IP.ip = v_new_ip
-                FOR KEY SHARE;
+            WHERE domain_id = r_domain_id AND IP.ip = v_new_ip;
+                -- FOR KEY SHARE;
         END IF;
     ELSE
         r_ip_id := NULL;
@@ -484,6 +484,8 @@ DECLARE
     v_timestamp         TIMESTAMPTZ;
     v_deserialized_data JSONB;
 BEGIN
+    PERFORM pg_advisory_xact_lock(hashtext(NEW.domain_name));
+
     -- Convert the input Unix timestamp to TIMESTAMPTZ
     v_timestamp := (timestamptz 'epoch' + (NEW.timestamp * interval '1 millisecond'));
 
@@ -570,6 +572,8 @@ DECLARE
     v_sql_error_code         TEXT;
     v_sql_error_message      TEXT;
 BEGIN
+    PERFORM pg_advisory_xact_lock(hashtext(NEW.domain_name));
+
     BEGIN
         v_sql_error_code := NULL;
         v_sql_error_message := NULL;
