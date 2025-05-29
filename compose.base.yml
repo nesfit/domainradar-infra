@@ -128,7 +128,11 @@ services:
 
   collector-tls:
     <<: *java-cpc-collector
-    entrypoint: [ "java", "-Djava.security.properties=/app/legacy.security", "-Dlog4j2.configurationFile=file:log4j2.xml", "-cp", "/app/domainradar-collector.jar", "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
+    entrypoint: [ "java", "-Djava.security.properties=/app/legacy.security", 
+                  "-Dlog4j2.configurationFile=file:log4j2.xml", 
+                  "-Djdk.httpclient.allowRestrictedHeaders=host",
+                  "-cp", "/app/domainradar-collector.jar", 
+                  "cz.vut.fit.domainradar.standalone.StandaloneCollectorRunner" ]
     command: [ "--col-tls", "-id", "${ID_PREFIX-domrad}", "-p", "/app/client.properties", "-s", "${BOOTSTRAP_SERVERS:-kafka1:9093}" ]
     secrets:
       - kafka-truststore
