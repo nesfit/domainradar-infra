@@ -1,4 +1,7 @@
-# DomainRadar
+# DomainRadar Infrastructure Template
+
+> [!CAUTION]
+> The instructions below are **not** up to date, they're now kept here mainly for future reference. Refer to the [domainradar](https://github.com/nesfit/domainradar) repository for general information on the setup.
 
 This repository contains a Docker Compose setup for a complete DomainRadar testing environment. It includes a Kafka cluster using encrypted communication, the prefilter, the pipeline components (collectors, data merger, feature extractor, classifier), a PostgreSQL database, a MongoDB database, Kafka Connect configured to push data to them, and a web UI for Kafka.
 
