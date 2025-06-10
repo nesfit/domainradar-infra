@@ -248,7 +248,6 @@ BEGIN
     INTO r_domain_id
     FROM Domain
     WHERE domain_name = p_domain_name;
-        -- FOR KEY SHARE;
 
     IF NOT FOUND THEN
         INSERT INTO Domain (domain_name, last_update)
@@ -261,7 +260,6 @@ BEGIN
             INTO r_domain_id
             FROM Domain
             WHERE domain_name = p_domain_name;
-                -- FOR KEY SHARE;
         END IF;
     END IF;
 
@@ -285,7 +283,6 @@ BEGIN
             INTO r_ip_id
             FROM IP
             WHERE domain_id = r_domain_id AND IP.ip = v_new_ip;
-                -- FOR KEY SHARE;
         END IF;
     ELSE
         r_ip_id := NULL;
@@ -472,89 +469,103 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION insert_collection_result()
-    RETURNS trigger AS
+-- Procedure to process all pending collection results in batch
+CREATE OR REPLACE PROCEDURE process_collection_results()
+    LANGUAGE plpgsql
+AS
 $$
 DECLARE
+    rec                 RECORD;
     v_domain_id         BIGINT;
     v_ip_id             BIGINT;
     v_collector_id      SMALLINT;
     v_collector_for_ip  BOOLEAN;
-    -- v_new_record        Collection_Result_Referenced%ROWTYPE;
     v_timestamp         TIMESTAMPTZ;
     v_deserialized_data JSONB;
 BEGIN
-    PERFORM pg_advisory_xact_lock(hashtext(NEW.domain_name));
+    -- lock the dummy target so concurrent jobs don’t overlap
+    LOCK TABLE Collection_Results_Dummy_Target IN EXCLUSIVE MODE;
 
-    -- Convert the input Unix timestamp to TIMESTAMPTZ
-    v_timestamp := (timestamptz 'epoch' + (NEW.timestamp * interval '1 millisecond'));
+    FOR rec IN
+        SELECT domain_name, ip, collector, status_code, error, timestamp, raw_data
+        FROM Collection_Results_Dummy_Target
+        LOOP
+            -- convert ms-since-epoch into a TIMESTAMPTZ
+            v_timestamp := (timestamptz 'epoch' + (rec.timestamp * interval '1 millisecond'));
 
-    -- Insert or get domain and IP
-    SELECT r_domain_id, r_ip_id
-    INTO v_domain_id, v_ip_id
-    FROM insert_or_get_domain_and_ip(NEW.domain_name, NEW.ip, v_timestamp);
+            -- insert or look up Domain and IP
+            SELECT r_domain_id, r_ip_id
+            INTO v_domain_id, v_ip_id
+            FROM insert_or_get_domain_and_ip(rec.domain_name, rec.ip, v_timestamp);
 
-    -- Deserialize the input JSON, handle errors
-    BEGIN
-        v_deserialized_data := NEW.raw_data::JSONB;
-    EXCEPTION
-        WHEN OTHERS THEN
-            INSERT INTO Domain_Errors (domain_id, timestamp, source, error, sql_error_code, sql_error_message)
-            VALUES (v_domain_id, v_timestamp, 'insert_collection_result',
-                    'Cannot parse JSON.', SQLSTATE, SQLERRM);
+            -- parse raw_data JSON, capturing parse errors
+            BEGIN
+                v_deserialized_data := rec.raw_data::JSONB;
+            EXCEPTION
+                WHEN OTHERS THEN
+                    INSERT INTO Domain_Errors(domain_id, timestamp, source, error, sql_error_code, sql_error_message)
+                    VALUES (v_domain_id, v_timestamp, 'process_collection_results',
+                            'Cannot parse JSON.', SQLSTATE, SQLERRM);
+                    v_deserialized_data := NULL;
+            END;
 
-            v_deserialized_data := NULL;
-    END;
+            -- if this is QRadar data and succeeded, process it
+            IF rec.collector = 'qradar' AND rec.status_code = 0 THEN
+                PERFORM add_qradar_data(v_domain_id, rec.ip, v_timestamp, v_deserialized_data);
+            END IF;
 
-    -- Handle QRadar data
-    IF NEW.collector = 'qradar' AND NEW.status_code = 0 THEN
-        PERFORM add_qradar_data(v_domain_id, NEW.ip, v_timestamp, v_deserialized_data);
-    END IF;
+            -- look up collector metadata
+            SELECT id, is_ip_collector
+            INTO v_collector_id, v_collector_for_ip
+            FROM Collector
+            WHERE collector = rec.collector;
 
-    -- Check collector
-    SELECT id, is_ip_collector
-    INTO v_collector_id, v_collector_for_ip
-    FROM Collector
-    WHERE collector = NEW.collector;
+            IF NOT FOUND THEN
+                INSERT INTO Domain_Errors(domain_id, timestamp, source, error)
+                VALUES (v_domain_id, v_timestamp, 'process_collection_results',
+                        'Unknown collector: ' || rec.collector);
+                CONTINUE;
+            END IF;
 
-    IF v_collector_id IS NULL THEN
-        INSERT INTO Domain_Errors (domain_id, timestamp, source, error, sql_error_code, sql_error_message)
-        VALUES (v_domain_id, v_timestamp, 'insert_collection_result',
-                'Unknown collector ID: ' || NEW.collector);
-        RETURN NULL;
-    END IF;
+            -- if appropriate, update IP-specific fields
+            IF v_collector_for_ip AND v_ip_id IS NOT NULL AND v_deserialized_data IS NOT NULL THEN
+                PERFORM update_ip_data(
+                        v_ip_id,
+                        rec.collector,
+                        v_deserialized_data,
+                        v_timestamp,
+                        rec.status_code
+                        );
+            END IF;
 
-    -- Update IP data
-    IF v_collector_for_ip AND v_ip_id IS NOT NULL AND v_deserialized_data IS NOT NULL THEN
-        PERFORM update_ip_data(v_ip_id,
-                               NEW.collector,
-                               v_deserialized_data,
-                               v_timestamp,
-                               NEW.status_code);
-    END IF;
+            -- Insert into Collection_Result
+            -- IMPORTANT: Change the two occurrences of 'v_deserialized_data' to 'NULL' to disable storing raw data
 
-    -- Insert into Collection_Result
-    -- IMPORTANT: Change the two occurrences of 'v_deserialized_data' to 'NULL' to disable storing raw data
+            -- _template_start_
+            INSERT INTO Collection_Result(domain_id, ip_id, source_id, status_code, error, timestamp, raw_data)
+            VALUES (v_domain_id, v_ip_id, v_collector_id,
+                    rec.status_code, rec.error,
+                    v_timestamp, v_deserialized_data)
+            ON CONFLICT ON CONSTRAINT collection_result_unique DO UPDATE
+                SET status_code = EXCLUDED.status_code,
+                    error       = EXCLUDED.error,
+                    raw_data    = EXCLUDED.raw_data;
+            -- _template_end_
+        END LOOP;
 
-    -- _template_start_
-    INSERT INTO Collection_Result (domain_id, ip_id, source_id, status_code, error, timestamp, raw_data)
-    VALUES (v_domain_id, v_ip_id, v_collector_id, NEW.status_code, NEW.error,
-            v_timestamp, v_deserialized_data)
-    ON CONFLICT ON CONSTRAINT collection_result_unique DO UPDATE
-        SET status_code = NEW.status_code,
-            error       = NEW.error,
-            raw_data    = v_deserialized_data;
-    -- _template_end_
-
-    -- Don't save the record in the original table
-    RETURN NULL;
+    -- clear out everything that was just processed
+    DELETE FROM Collection_Results_Dummy_Target;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
-CREATE OR REPLACE FUNCTION insert_classification_result()
-    RETURNS trigger AS
+
+-- Procedure to process all pending classification results in batch
+CREATE OR REPLACE PROCEDURE process_classification_results()
+    LANGUAGE plpgsql
+AS
 $$
 DECLARE
+    rec                      RECORD;
     v_domain_id              BIGINT;
     v_deserialized_data      JSONB;
     v_aggregate_prob         DOUBLE PRECISION;
@@ -572,125 +583,112 @@ DECLARE
     v_sql_error_code         TEXT;
     v_sql_error_message      TEXT;
 BEGIN
-    PERFORM pg_advisory_xact_lock(hashtext(NEW.domain_name));
+    -- lock the dummy target so concurrent jobs don’t overlap
+    LOCK TABLE Classification_Results_Dummy_Target IN EXCLUSIVE MODE;
 
-    BEGIN
-        v_sql_error_code := NULL;
-        v_sql_error_message := NULL;
-
-        -- Deserialize the input JSON
-        v_deserialized_data := NEW.raw_data::JSONB;
-
-        -- Get top-level fields
-        v_aggregate_prob := COALESCE((v_deserialized_data ->> 'aggregate_probability')::DOUBLE PRECISION, -1.0);
-        v_aggregate_desc := (v_deserialized_data ->> 'aggregate_description');
-        v_error := (v_deserialized_data ->> 'error');
-        v_timestamp := COALESCE(
-                (timestamptz 'epoch' + (((v_deserialized_data ->> 'timestamp')::BIGINT) * interval '1 millisecond')),
-                now());
-    EXCEPTION
-        WHEN OTHERS THEN
-            v_aggregate_prob := -1;
-            v_aggregate_desc := NULL;
-            v_error := 'Cannot parse JSON.';
-            v_timestamp := now();
-            v_sql_error_code := SQLSTATE;
-            v_sql_error_message := SQLERRM;
-    END;
-
-    -- Insert or get domain
-    INSERT INTO Domain (domain_name, aggregate_probability, aggregate_description, last_update)
-    VALUES (NEW.domain_name, v_aggregate_prob,
-            v_aggregate_desc, v_timestamp)
-    ON CONFLICT (domain_name)
-        DO UPDATE
-        SET aggregate_probability = v_aggregate_prob,
-            aggregate_description = v_aggregate_desc,
-            last_update           = v_timestamp
-    RETURNING id INTO v_domain_id;
-
-    -- If an error occurred, no results will be present
-    IF v_error IS NOT NULL THEN
-        INSERT INTO Domain_Errors (domain_id, timestamp, source, error, sql_error_code, sql_error_message)
-        VALUES (v_domain_id, v_timestamp, 'insert_classification_result',
-                v_error, v_sql_error_code, v_sql_error_message);
-        RETURN NULL;
-    END IF;
-
-    -- Get the classification_results array from the input JSON
-    v_classification_results := v_deserialized_data -> 'classification_results';
-    IF v_classification_results IS NULL OR jsonb_typeof(v_classification_result) != 'array' THEN
-        INSERT INTO Domain_Errors (domain_id, timestamp, source, error)
-        VALUES (v_domain_id, v_timestamp, 'insert_classification_result',
-                'No classification results in the input data.');
-        RETURN NULL;
-    END IF;
-
-    -- Loop through each classification_result in the array
-    FOR v_classification_result IN SELECT value FROM jsonb_array_elements(v_classification_results) AS t(value)
+    FOR rec IN
+        SELECT domain_name, raw_data
+        FROM Classification_Results_Dummy_Target
         LOOP
             BEGIN
-                -- Extract fields from the classification_result JSON object
-                v_category := (v_classification_result ->> 'category')::SMALLINT;
-                v_probability := (v_classification_result ->> 'probability')::DOUBLE PRECISION;
-                v_description := v_classification_result ->> 'description';
-                v_details := v_classification_result -> 'details';
-
-                -- Insert into Classification_Category_Result, handle conflict if entry exists
-                INSERT INTO Classification_Category_Result (domain_id, timestamp, category_id, probability, description, details)
-                VALUES (v_domain_id, v_timestamp, v_category, v_probability, v_description, NULL)
-                ON CONFLICT ON CONSTRAINT classification_category_result_unique DO UPDATE
-                    SET probability = EXCLUDED.probability,
-                        description = EXCLUDED.description,
-                        details     = EXCLUDED.details
-                RETURNING id INTO v_result_id;
-
-                -- If no details
-                IF v_details IS NULL OR jsonb_typeof(v_details) != 'object' THEN
-                    CONTINUE;
-                END IF;
-
-                -- Loop through each key-value pair in the details JSON object
-                FOR v_detail_rec IN SELECT key, value FROM jsonb_each(v_details)
-                    LOOP
-                        -- Insert into Classifier_Output, handle conflict if entry exists
-                        INSERT INTO Classifier_Output (result_id, classifier_id, probability, additional_info)
-                        VALUES (v_result_id,
-                                v_detail_rec.key::SMALLINT,
-                                v_detail_rec.value::DOUBLE PRECISION,
-                                NULL)
-                        ON CONFLICT (result_id, classifier_id) DO UPDATE
-                            SET probability     = EXCLUDED.probability,
-                                additional_info = EXCLUDED.additional_info;
-                    END LOOP;
-
+                v_sql_error_code := NULL;
+                v_sql_error_message := NULL;
+                -- deserialize the input JSON
+                v_deserialized_data := rec.raw_data::JSONB;
+                -- parse top‐level fields
+                v_aggregate_prob := COALESCE((v_deserialized_data ->> 'aggregate_probability')::DOUBLE PRECISION, -1.0);
+                v_aggregate_desc := v_deserialized_data ->> 'aggregate_description';
+                v_error := v_deserialized_data ->> 'error';
+                v_timestamp := COALESCE(
+                        (timestamptz 'epoch' +
+                         (((v_deserialized_data ->> 'timestamp')::BIGINT) * interval '1 millisecond')),
+                        now()
+                               );
             EXCEPTION
                 WHEN OTHERS THEN
-                    INSERT INTO Domain_Errors (domain_id, timestamp, source, error, sql_error_code, sql_error_message)
-                    VALUES (v_domain_id, v_timestamp, 'insert_classification_result_loop',
-                            'Cannot process classification result.', SQLSTATE, SQLERRM);
-                    RETURN NULL;
+                    v_aggregate_prob := -1;
+                    v_aggregate_desc := NULL;
+                    v_error := 'Cannot parse JSON.';
+                    v_timestamp := now();
+                    v_sql_error_code := SQLSTATE;
+                    v_sql_error_message := SQLERRM;
             END;
+
+            -- upsert Domain with aggregate results
+            INSERT INTO Domain(domain_name, aggregate_probability, aggregate_description, last_update)
+            VALUES (rec.domain_name, v_aggregate_prob, v_aggregate_desc, v_timestamp)
+            ON CONFLICT (domain_name) DO UPDATE
+                SET aggregate_probability = EXCLUDED.aggregate_probability,
+                    aggregate_description = EXCLUDED.aggregate_description,
+                    last_update           = EXCLUDED.last_update
+            RETURNING id INTO v_domain_id;
+
+            -- if parse error, record and skip
+            IF v_error IS NOT NULL THEN
+                INSERT INTO Domain_Errors(domain_id, timestamp, source, error, sql_error_code, sql_error_message)
+                VALUES (v_domain_id, v_timestamp, 'process_classification_results', v_error, v_sql_error_code,
+                        v_sql_error_message);
+                CONTINUE;
+            END IF;
+
+            -- extract the array of per‐category results
+            v_classification_results := v_deserialized_data -> 'classification_results';
+            IF v_classification_results IS NULL OR jsonb_typeof(v_classification_results) <> 'array' THEN
+                INSERT INTO Domain_Errors(domain_id, timestamp, source, error)
+                VALUES (v_domain_id, v_timestamp, 'process_classification_results', 'No classification results in the input data.');
+                CONTINUE;
+            END IF;
+
+            -- loop through each classification result
+            FOR v_classification_result IN
+                SELECT value
+                FROM jsonb_array_elements(v_classification_results) AS t(value)
+                LOOP
+                    BEGIN
+                        -- Extract fields from the classification_result JSON object
+                        v_category := (v_classification_result ->> 'category')::SMALLINT;
+                        v_probability := (v_classification_result ->> 'probability')::DOUBLE PRECISION;
+                        v_description := v_classification_result ->> 'description';
+                        v_details := v_classification_result -> 'details';
+
+                        -- Insert into Classification_Category_Result, handle conflict if entry exists
+                        INSERT INTO Classification_Category_Result(domain_id, timestamp, category_id, probability,
+                                                                   description, details)
+                        VALUES (v_domain_id, v_timestamp, v_category, v_probability, v_description, NULL)
+                        ON CONFLICT ON CONSTRAINT classification_category_result_unique DO UPDATE
+                            SET probability = EXCLUDED.probability,
+                                description = EXCLUDED.description,
+                                details     = EXCLUDED.details
+                        RETURNING id INTO v_result_id;
+
+                        -- if there are classifier outputs, write those too
+                        IF v_details IS NOT NULL AND jsonb_typeof(v_details) = 'object' THEN
+                            FOR v_detail_rec IN SELECT key, value FROM jsonb_each(v_details)
+                                LOOP
+                                    -- Insert into Classifier_Output, handle conflict if entry exists
+                                    INSERT INTO Classifier_Output(result_id, classifier_id, probability, additional_info)
+                                    VALUES (v_result_id,
+                                            v_detail_rec.key::SMALLINT,
+                                            v_detail_rec.value::DOUBLE PRECISION,
+                                            NULL)
+                                    ON CONFLICT (result_id, classifier_id) DO UPDATE
+                                        SET probability     = EXCLUDED.probability,
+                                            additional_info = EXCLUDED.additional_info;
+                                END LOOP;
+                        END IF;
+
+                    EXCEPTION
+                        WHEN OTHERS THEN
+                            INSERT INTO Domain_Errors(domain_id, timestamp, source, error, sql_error_code,
+                                                      sql_error_message)
+                            VALUES (v_domain_id, v_timestamp, 'process_classification_results',
+                                    'Cannot process one result.', SQLSTATE, SQLERRM);
+                            EXIT; -- skip remaining sub‐results for this domain
+                    END;
+                END LOOP;
         END LOOP;
 
-    -- Don't save the record in the original table
-    RETURN NULL;
+    -- clear out everything that was just processed
+    DELETE FROM Classification_Results_Dummy_Target;
 END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS insert_collection_result_trigger
-    ON Collection_Results_Dummy_Target;
-DROP TRIGGER IF EXISTS insert_classification_result_trigger
-    ON Classification_Results_Dummy_Target;
-
-CREATE OR REPLACE TRIGGER insert_collection_result_trigger
-    BEFORE INSERT
-    ON Collection_Results_Dummy_Target
-    FOR EACH ROW
-EXECUTE FUNCTION insert_collection_result();
-
-CREATE OR REPLACE TRIGGER insert_classification_result_trigger
-    BEFORE INSERT
-    ON Classification_Results_Dummy_Target
-    FOR EACH ROW
-EXECUTE FUNCTION insert_classification_result();
+$$;
