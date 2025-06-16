@@ -7,7 +7,7 @@ INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (50, 'zone'
 INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (60, 'dns', false);
 INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (70, 'tls', false);
 INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (80, 'rdap-dn', false);
-INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (1000, 'qradar', true);
+INSERT INTO public.collector (id, collector, is_ip_collector) VALUES (120, 'qradar', true);
 
 -- Collector result codes
 INSERT INTO public.collector_status_type (status_code, name, description) VALUES (-1, 'Fatal Pipeline Error', 'An unexpected fatal error occurred in the data processing infrastructure.');
