@@ -6,19 +6,27 @@
     "sources": [],
     "filters": [
       {
+				"type": "ValidDomainFilter",
+				"args": [],
+				"kwargs": {
+					"filter_name": "valid_domains",
+					"filter_result_action": 1
+				}
+			},
+      {
         "type": "FileBlockListFilter",
         "args": [],
         "kwargs": {
-          "filter_name": "top_100_blocklist",
+          "filter_name": "arpa_tld",
           "filter_result_action": 2,
-          "filename": "top100.blocklist"
+          "filename": "custom.blocklist"
         }
       },
       {
         "type": "CustomPostgresFilter",
         "args": [],
         "kwargs": {
-          "filter_name": "custom_filter",
+          "filter_name": "custom_user_filter",
           "filter_result_action": 2,
           "host": "postgres",
           "port": 5432,
