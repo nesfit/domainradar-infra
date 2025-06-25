@@ -59,9 +59,11 @@ grant insert
 grant select
     on table domain, ip, collection_result, classification_category_result, classifier_output,
              qradar_offense, qradar_offense_source, domain_errors, classification_category,
-             classifier_type, collector, domains_input, custom_prefilter, custom_prefiltered_domain
+             classifier_type, collector, collector_status_type, domains_input, 
+             custom_prefilter, custom_prefiltered_domain
     to :WEBUI_USER;
 
+-- The tables that the web UI manages to insert custom user prefilters
 grant insert, update, delete
     on table custom_prefilter, custom_prefiltered_domain
     to :WEBUI_USER;
