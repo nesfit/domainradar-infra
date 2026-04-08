@@ -370,103 +370,235 @@ $$;
 --- Old entries cleanup ---
 
 CREATE OR REPLACE PROCEDURE clear_old_results()
-    LANGUAGE plpgsql
-AS
-$$
+LANGUAGE plpgsql AS $$
 BEGIN
     -- First, delete all pre-filtered names older than 21 days
     -- (so every domain name can be classified at least once in 21 days)
-    delete
-    from domains_input
-    where first_seen < now() - (interval '21' day);
+    DELETE FROM domains_input
+    WHERE first_seen < now() - interval '21 days';
 
     -- Domain names with aggregated risk <= 0.4:
-    --   - Collection results are removed after 2 days
-    --   - The domain entry (incl. classification results by cascade) are removed after 4 days
-    with thresholded as (select id, domain_name, last_update from domain where aggregate_probability <= 0.4),
-         _ as (delete from collection_result where
-             domain_id in (select id from thresholded where last_update < now() - (interval '2' day))),
-         removed as (delete from domain where
-             id in (select id from thresholded where last_update < now() - (interval '4' day))
-             returning domain_name, aggregate_probability)
-    insert
-    into discarded_domain (domain_name, aggregate_probability, discarded_at)
-    select domain_name, aggregate_probability, now()
-    from removed;
+    -- - Collection results are removed after 2 days
+    -- - The domain entry (incl. classification results by cascade) is removed after 4 days
+    WITH thresholded AS (
+        SELECT id, domain_name, aggregate_probability, last_update
+        FROM domain
+        WHERE aggregate_probability <= 0.4
+    ),
+    _ AS (
+        DELETE FROM collection_result
+        WHERE domain_id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '2 days'
+        )
+    ),
+    removed AS (
+        DELETE FROM domain
+        WHERE id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '4 days'
+        )
+        RETURNING domain_name, aggregate_probability
+    ),
+    __ AS (
+        DELETE FROM feature_vector
+        WHERE domain_name IN (SELECT domain_name FROM removed)
+    )
+    INSERT INTO discarded_domain (domain_name, aggregate_probability, discarded_at)
+    SELECT domain_name, aggregate_probability, now()
+    FROM removed;
 
-    -- Domain names with 0.4 < aggregated risk <= 0.6:
-    --   - Collection results are removed after 4 days
-    --   - The domain entry (incl. classification results by cascade) are removed after 7 days
-    --   - The domain can be re-classified (if seen again) after 7 days
-    with thresholded as (select id, domain_name, last_update
-                         from domain
-                         where aggregate_probability <= 0.6
-                           and aggregate_probability > 0.4),
-         _ as (delete from collection_result where
-             domain_id in (select id from thresholded where last_update < now() - (interval '4' day))),
-         __ as (delete from domains_input where first_seen < now() - (interval '7' day)
-             and domain in (select domain_name from thresholded)),
-         removed as (delete from domain where
-             id in (select id from thresholded where last_update < now() - (interval '7' day))
-             returning domain_name, aggregate_probability)
-    insert
-    into discarded_domain (domain_name, aggregate_probability, discarded_at)
-    select domain_name, aggregate_probability, now()
-    from removed;
+    -- Domain names with 0.4 < aggregated risk <= 0.5:
+    -- - Collection results are removed after 4 days
+    -- - The domain entry (incl. classification results by cascade) is removed after 7 days
+    -- - The domain can be re-classified (if seen again) after 7 days
+    WITH thresholded AS (
+        SELECT id, domain_name, aggregate_probability, last_update
+        FROM domain
+        WHERE aggregate_probability > 0.4
+          AND aggregate_probability <= 0.5
+    ),
+    _ AS (
+        DELETE FROM collection_result
+        WHERE domain_id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '4 days'
+        )
+    ),
+    __ AS (
+        DELETE FROM domains_input
+        WHERE first_seen < now() - interval '7 days'
+          AND domain IN (SELECT domain_name FROM thresholded)
+    ),
+    removed AS (
+        DELETE FROM domain
+        WHERE id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '7 days'
+        )
+        RETURNING domain_name, aggregate_probability
+    ),
+    ___ AS (
+        DELETE FROM feature_vector
+        WHERE domain_name IN (SELECT domain_name FROM removed)
+    )
+    INSERT INTO discarded_domain (domain_name, aggregate_probability, discarded_at)
+    SELECT domain_name, aggregate_probability, now()
+    FROM removed;
 
-    -- Domain names with 0.6 < aggregated risk <= 0.8:
-    --   - Collection results are removed after 7 days
-    --   - The domain entry (incl. classification results by cascade) are removed after 14 days
-    --   - The domain can be re-classified (if seen again) after 5 days
-    with thresholded as (select id, domain_name, last_update
-                         from domain
-                         where aggregate_probability <= 0.8
-                           and aggregate_probability > 0.6),
-         _ as (delete from collection_result where
-             domain_id in (select id from thresholded where last_update < now() - (interval '7' day))),
-         __ as (delete from domains_input where first_seen < now() - (interval '5' day)
-             and domain in (select domain_name from thresholded)),
-         removed as (delete from domain where
-             id in (select id from thresholded where last_update < now() - (interval '14' day))
-             returning domain_name, aggregate_probability)
-    insert
-    into discarded_domain (domain_name, aggregate_probability, discarded_at)
-    select domain_name, aggregate_probability, now()
-    from removed;
+    -- Domain names with 0.5 < aggregated risk <= 0.6:
+    -- - Collection results are removed after 7 days
+    -- - The domain entry (incl. classification results by cascade) is removed after 60 days
+    -- - The domain can be re-classified (if seen again) after 7 days
+    WITH thresholded AS (
+        SELECT id, domain_name, aggregate_probability, last_update
+        FROM domain
+        WHERE aggregate_probability > 0.5
+          AND aggregate_probability <= 0.6
+    ),
+    _ AS (
+        DELETE FROM collection_result
+        WHERE domain_id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '7 days'
+        )
+    ),
+    __ AS (
+        DELETE FROM domains_input
+        WHERE first_seen < now() - interval '7 days'
+          AND domain IN (SELECT domain_name FROM thresholded)
+    ),
+    removed AS (
+        DELETE FROM domain
+        WHERE id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '60 days'
+        )
+        RETURNING domain_name, aggregate_probability
+    ),
+    ___ AS (
+        DELETE FROM feature_vector
+        WHERE domain_name IN (SELECT domain_name FROM removed)
+    )
+    INSERT INTO discarded_domain (domain_name, aggregate_probability, discarded_at)
+    SELECT domain_name, aggregate_probability, now()
+    FROM removed;
 
-    -- Domain names with 0.8 < aggregated risk <= 1.0:
-    --   - Collection results are removed after 30 days
-    --   - The domain entry (incl. classification results by cascade) are removed after 60 days
-    --   - The domain can be re-classified (if seen again) after 3 days
-    with thresholded as (select id, domain_name, last_update
-                         from domain
-                         where aggregate_probability is not null
-                           and aggregate_probability > 0.8),
-         _ as (delete from collection_result where
-             domain_id in (select id from thresholded where last_update < now() - (interval '30' day))),
-         __ as (delete from domains_input where first_seen < now() - (interval '3' day)
-             and domain in (select domain_name from thresholded)),
-         removed as (delete from domain where
-             id in (select id from thresholded where last_update < now() - (interval '60' day))
-             returning domain_name, aggregate_probability)
-    insert
-    into discarded_domain (domain_name, aggregate_probability, discarded_at)
-    select domain_name, aggregate_probability, now()
-    from removed;
+    -- Domain names with 0.6 < aggregated risk <= 0.7:
+    -- - Collection results are removed after 14 days
+    -- - The domain entry (incl. classification results by cascade) is removed after 120 days
+    -- - The domain can be re-classified (if seen again) after 5 days
+    WITH thresholded AS (
+        SELECT id, domain_name, aggregate_probability, last_update
+        FROM domain
+        WHERE aggregate_probability > 0.6
+          AND aggregate_probability <= 0.7
+    ),
+    _ AS (
+        DELETE FROM collection_result
+        WHERE domain_id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '14 days'
+        )
+    ),
+    __ AS (
+        DELETE FROM domains_input
+        WHERE first_seen < now() - interval '5 days'
+          AND domain IN (SELECT domain_name FROM thresholded)
+    ),
+    removed AS (
+        DELETE FROM domain
+        WHERE id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '120 days'
+        )
+        RETURNING domain_name, aggregate_probability
+    ),
+    ___ AS (
+        DELETE FROM feature_vector
+        WHERE domain_name IN (SELECT domain_name FROM removed)
+    )
+    INSERT INTO discarded_domain (domain_name, aggregate_probability, discarded_at)
+    SELECT domain_name, aggregate_probability, now()
+    FROM removed;
 
-    -- Domain names that are collected but unclassified for some reason (i.e. system failure)
-    -- will be removed from the database after 7 days, and they may be re-classified (if seen
-    -- again) after 1 day
-    with thresholded as (select id, domain_name, last_update from domain where aggregate_probability is null),
-         __ as (delete from domains_input where first_seen < now() - (interval '1' day)
-             and domain in (select domain_name from thresholded)),
-         removed as (delete from domain where
-             id in (select id from thresholded where last_update < now() - (interval '7' day))
-             returning domain_name, aggregate_probability)
-    insert
-    into discarded_domain (domain_name, aggregate_probability, discarded_at)
-    select domain_name, aggregate_probability, now()
-    from removed;
+    -- Domain names with aggregated risk > 0.7:
+    -- - Collection results are removed after 60 days
+    -- - The domain entry (incl. classification results by cascade) is removed after 180 days
+    -- - The domain can be re-classified (if seen again) after 1 day
+    WITH thresholded AS (
+        SELECT id, domain_name, aggregate_probability, last_update
+        FROM domain
+        WHERE aggregate_probability IS NOT NULL
+          AND aggregate_probability > 0.7
+    ),
+    _ AS (
+        DELETE FROM collection_result
+        WHERE domain_id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '60 days'
+        )
+    ),
+    __ AS (
+        DELETE FROM domains_input
+        WHERE first_seen < now() - interval '1 day'
+          AND domain IN (SELECT domain_name FROM thresholded)
+    ),
+    removed AS (
+        DELETE FROM domain
+        WHERE id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '180 days'
+        )
+        RETURNING domain_name, aggregate_probability
+    ),
+    ___ AS (
+        DELETE FROM feature_vectorv
+        WHERE domain_name IN (SELECT domain_name FROM removed)
+    )
+    INSERT INTO discarded_domain (domain_name, aggregate_probability, discarded_at)
+    SELECT domain_name, aggregate_probability, now()
+    FROM removed;
+
+    -- Domain names that are collected but unclassified for some reason
+    -- (i.e. system failure) will be removed from the database after 7 days,
+    -- and they may be re-classified (if seen again) after 1 day
+    WITH thresholded AS (
+        SELECT id, domain_name, aggregate_probability, last_update
+        FROM domain
+        WHERE aggregate_probability IS NULL
+    ),
+    __ AS (
+        DELETE FROM domains_input
+        WHERE first_seen < now() - interval '1 day'
+          AND domain IN (SELECT domain_name FROM thresholded)
+    ),
+    removed AS (
+        DELETE FROM domain
+        WHERE id IN (
+            SELECT id
+            FROM thresholded
+            WHERE last_update < now() - interval '7 days'
+        )
+        RETURNING domain_name, aggregate_probability
+    ),
+    ___ AS (
+        DELETE FROM feature_vector
+        WHERE domain_name IN (SELECT domain_name FROM removed)
+    )
+    INSERT INTO discarded_domain (domain_name, aggregate_probability, discarded_at)
+    SELECT domain_name, aggregate_probability, now()
+    FROM removed;
 END;
 $$;
 
