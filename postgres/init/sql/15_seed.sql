@@ -42,6 +42,7 @@ INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (5, 1, '
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (6, 1, 'RDAP-based NN');
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (8, 1, 'IP-based NN');
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (19, 1, 'HTML-based LightGBM');
+INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (23, 1, 'TF-IDF-based LightGBM');
 
 -- Malware classifiers
 INSERT INTO public.classification_category (id, category) VALUES (2, 'Malware');
@@ -50,6 +51,7 @@ INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (10, 2, 
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (11, 2, 'XGBoost');
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (12, 2, 'Deep NN');
 INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (20, 2, 'HTML-based LightGBM');
+INSERT INTO public.classifier_type (id, category_id, classifier) VALUES (22, 2, 'TF-IDF-based LightGBM');
 
 -- DGA classifiers
 INSERT INTO public.classification_category (id, category) VALUES (3, 'DGA');
